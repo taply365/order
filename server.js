@@ -14,6 +14,9 @@ app.use(cors())
 app.use(express.static('upload/images')); 
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+app.get('/connection', (req, res) => {
+    res.status(200).json({ message: 'Connection successful' });
+});
 
 app.use('/', jwtMiddleware, router);
 createSocketServer(app);
