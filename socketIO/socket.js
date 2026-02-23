@@ -41,13 +41,12 @@ export default function createSocketServer(app) {
   io.use((socket, next) => {
     try {
       const { token } = socket.handshake.auth || {};
-      log.debug(`jtw token received in handshake auth: ${token}`);
       if (!token) return next(new Error("missing auth"));
 
       const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" }); // same key you sign with
       socket.user = decoded; // attach user info for later use
 
-      return next();
+      next();
     } catch (err) {
       log.err("JWT verify failed:", err.name, err.message);
       return next(new Error("unauthorized"));
