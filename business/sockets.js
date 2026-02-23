@@ -39,7 +39,7 @@ async function sendOrderToBusiness(socket, data) {
         const socketID = await getSocketIdForBusiness(data.receiver);
         log.debug(`Found socketID: ${socketID}`);
         if(socketID){
-            socket.to(socketID).emit("new-order", data, (response) => {
+            socket.to(socketID).emit("new-order", order, (response) => {
                 if(response && response.success){
                     log.info(`Order sent successfully to business with socketID: ${socketID}`);
                     return true;

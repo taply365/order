@@ -26,6 +26,7 @@ export function emitEvent(socket) {
         if (typeof ack === "function") ack({ success: false, ts: Date.now() });
         return;
     }
+    log.info("Order sent to business successfully");
     if (typeof ack === "function") ack({ success: true, ts: Date.now() });
   });
 }
