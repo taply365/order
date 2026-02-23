@@ -1,5 +1,5 @@
 import log from "minhluanlu-color-log";
-import { saveSocketIdForBusiness } from "../business/sockets.js";
+import { saveSocketIdForBusiness, sendOrderToBusiness } from "../business/sockets.js";
 
 
 export function emitEvent(socket) {
@@ -20,7 +20,12 @@ export function emitEvent(socket) {
   // FOR ORDERS //
   socket.on("new_order", (data, ack) => {
     log.debug(`new_order event received from socketID=(${socket.id}):`);
-    log.warn(data);
+    const send = sendOrderToBusiness(socket, data);
+    if(!send){
+        log.err("Failed to send order to business");
+        if (typeof ack === "function") ack({ success: false, ts: Date.now() });
+        return;
+    }
     if (typeof ack === "function") ack({ success: true, ts: Date.now() });
   });
 }
