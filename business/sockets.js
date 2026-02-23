@@ -19,6 +19,14 @@ async function saveSocketIdForBusiness(user, socketID) {
     }
 }
 
+async function sendOrderToBusiness(data) {
+    try {}
+    catch(err){
+        log.err(err);
+    }   
+}
+
 export {
-    saveSocketIdForBusiness
+    saveSocketIdForBusiness,
+    sendOrderToBusiness
 }

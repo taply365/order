@@ -19,7 +19,8 @@ export function emitEvent(socket) {
 
   // FOR ORDERS //
   socket.on("new_order", (data, ack) => {
-    log.debug(`new_order event received from socketID=(${socket.id}):`, data);
+    log.debug(`new_order event received from socketID=(${socket.id}):`);
+    log.warn(data);
     if (typeof ack === "function") ack({ success: true, ts: Date.now() });
   });
 }
