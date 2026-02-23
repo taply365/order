@@ -28,7 +28,7 @@ export default function createSocketServer(app) {
   const io = new Server(server, {
     path: "/socket.io",
     cors: {
-      origin: ["http://localhost:5173", "http://tryonapp.tech", "http://dev.tryonapp.tech"], //  origin: ["https://yourdomain.com"], // only your site
+      origin: ["http://localhost:5173", "https://tryonapp.tech", "https://dev.tryonapp.tech"], //  origin: ["https://yourdomain.com"], // only your site
       methods: ["GET", "POST"],
       allowedHeaders: "*",
       credentials: true,
