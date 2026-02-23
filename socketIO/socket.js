@@ -39,15 +39,18 @@ export default function createSocketServer(app) {
 
   // Auth middleware
   io.use((socket, next) => {
-    console.log("AUTH TOKEN PRESENT?", !!socket.handshake.auth?.token);
     try {
-      const decoded = jwt.verify(socket.handshake.auth.token, process.env.SECRET_KEY);
-      console.log("DECODED:", decoded);
-      socket.user = decoded;
-      next();
-    } catch (e) {
-      console.log("VERIFY FAIL:", e.message);
-      next(new Error("unauthorized"));
+      const { token } = socket.handshake.auth || {};
+      log.debug(`jtw token received in handshake auth: ${token}`);
+      if (!token) return next(new Error("missing auth"));
+
+      const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" }); // same key you sign with
+      socket.user = decoded; // attach user info for later use
+
+      return next();
+    } catch (err) {
+      log.err("JWT verify failed:", err.name, err.message);
+      return next(new Error("unauthorized"));
     }
   });
 

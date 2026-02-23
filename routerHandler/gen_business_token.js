@@ -12,11 +12,8 @@ async function genBusinessToken(req, res) {
             });
         }
 
-        const token = jwt.sign(
-            { uid: uid },
-            process.env.SECRET_KEY,
-            { expiresIn: "5m" }
-        );
+        const payload = { uid: uid };
+        const token = jwt.sign(payload, process.env.SECRET_KEY, { algorithm: "HS256" });
         log.debug(`Generating business token for uid ${req.params.uid} successfully.`);
         return res.status(200).json({
             success: true,
