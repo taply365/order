@@ -5,14 +5,12 @@ import { response } from "express";
 
 async function saveSocketIdForBusiness(user, socketID) {
     try{
-        const query = `
-            INSERT INTO sockets (uid, socketID)
-            VALUES (?, ?)
-            ON DUPLICATE KEY UPDATE
-            socketID = VALUES(socketID),
-            updatedAt = CURRENT_TIMESTAMP
-        `;
-        await RunQuery(query, [user.uid, socketID]);
+        const existing = await RunQuery(`SELECT * FROM sockets WHERE uid = ?`, [user.uid]);
+        if(existing.length > 0){
+            await RunQuery(`UPDATE sockets SET socketID = ? WHERE uid = ?`, [socketID, user.uid]);
+        } else {
+            await RunQuery(`INSERT INTO sockets (uid, socketID) VALUES (?, ?)`, [user.uid, socketID]);
+        }
         return true;
     } catch(err){
         log.err(err);
@@ -39,7 +37,7 @@ async function sendOrderToBusiness(socket, data) {
         const socketID = await getSocketIdForBusiness(data.receiver);
         log.debug(`Found socketID: ${socketID}`);
         if(socketID){
-            socket.to(socketID).emit("new-order", order, (response) => {
+            socket.to(socketID).emit("new-order", data, (response) => {
                 if(response && response.success){
                     log.info(`Order sent successfully to business with socketID: ${socketID}`);
                     return true;
