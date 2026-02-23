@@ -61,6 +61,7 @@ export default function createSocketServer(app) {
     socket.on("disconnect", (reason) => {
       log.debug(`socket ${socket.id} disconnected: ${reason}`);
     });
+
     // Example event
     socket.on("ping", (data, ack) => {
       log.debug("ping received:", data);

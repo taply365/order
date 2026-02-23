@@ -11,6 +11,7 @@ const upload = multer({
 })
 
 router.get('/gen-guest-token/:publicCode', controller.genGuestToken);
+router.get('/gen-business-token/:uid', controller.genBusinessToken);
 
 
 
