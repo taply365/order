@@ -11,8 +11,8 @@ async function saveSocketIdForBusiness(user, socketID) {
             socketID = VALUES(socketID),
             updatedAt = CURRENT_TIMESTAMP
         `;
-        const result = await RunQuery(query, [user.uid, socketID]);
-        return result;
+        await RunQuery(query, [user.uid, socketID]);
+        return true;
     } catch(err){
         log.err(err);
         return false;

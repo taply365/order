@@ -6,7 +6,7 @@ export function emitEvent(socket) {
 
   // FOR BUSINESS //
   socket.on("business-connection", (data, ack) => {
-    const save = saveSocketIdForBusiness(data?.user, socket.id);
+    const save = saveSocketIdForBusiness(data, socket.id);
     if(!save){
         log.err("Failed to save socket ID for business");
         if (typeof ack === "function") ack({ success: false, ts: Date.now() });
