@@ -1,6 +1,6 @@
 import log from "minhluanlu-color-log";
 import RunQuery from "../db/db.js";
-import { response } from "express";
+
 
 
 async function saveSocketIdForBusiness(user, socketID) {
@@ -37,7 +37,7 @@ async function sendOrderToBusiness(socket, data) {
         const socketID = await getSocketIdForBusiness(data.receiver);
         log.debug(`Found socketID: ${socketID}`);
         if(socketID){
-            socket.to(socketID).emit("new-order", data, (response) => {
+            socket.to(socketID).emit("new_order", data, (response) => {
                 if(response && response.success){
                     log.info(`Order sent successfully to business with socketID: ${socketID}`);
                     return true;
