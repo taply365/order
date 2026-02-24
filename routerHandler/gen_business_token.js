@@ -14,7 +14,7 @@ async function genBusinessToken(req, res) {
 
         const payload = { uid: uid };
         const token = jwt.sign(payload, process.env.SECRET_KEY, { algorithm: "HS256" });
-        log.debug(`Generating business token for uid ${req.params.uid} successfully.`);
+        log.info(`Generating business token successfully.`);
         return res.status(200).json({
             success: true,
             message: `Business token generated for uid: ${token}`,
