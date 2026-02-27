@@ -24,5 +24,5 @@ createSocketServer(app);
 const PORT = config.SERVER_PORT;
 app.listen(
     PORT, '0.0.0.0',
-    () => log.info(`Connected to API Server running On http://localhost:${PORT}`)
+    () => log.info(`[API Server 🖥️🔌] running on 🌐 - http://localhost:${PORT}`)
 );

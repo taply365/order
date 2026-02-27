@@ -1,8 +1,10 @@
 import log from "minhluanlu-color-log";
 import jwt from "jsonwebtoken";
 
+
 async function genGuestToken(req, res) {
     try {
+        log.info("🔑 Generating guest token...");
         const publicCode = req.params.publicCode;
         if (!process.env.SECRET_KEY) {
             log.err("SECRET_KEY not configured");
@@ -15,9 +17,10 @@ async function genGuestToken(req, res) {
         const token = jwt.sign(
             { guestId: publicCode , isBusiness: false},
             process.env.SECRET_KEY,
-            { expiresIn: "5m" }
+            { expiresIn: "15m" }
         );
-        log.info(`Generating guest token successfully.`);
+
+        log.debug(`🔑✅ Guest token generated successfully.`);
         return res.status(200).json({
             success: true,
             message: `Guest token generated for public code: ${token}`,

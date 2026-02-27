@@ -45,10 +45,11 @@ export default function createSocketServer(app) {
 
       const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" }); // same key you sign with
       socket.user = decoded; // attach user info for later use
-
-      if(socket?.isBusiness == true) {
-        socket.join(`business:${socket.user.businessId}`);
-      }
+      
+      if(socket?.user?.businessId != undefined && socket?.user?.businessId != null){ 
+        socket.join(`business:${socket.user?.businessId}`);
+        log.debug(`🤝 Joined business room: ${socket.user?.businessId}`);
+      } 
 
       next();
     } catch (err) {
@@ -61,10 +62,10 @@ export default function createSocketServer(app) {
   io.on("connection", (socket) => {
     lastSocketInstance = socket;
 
-    log.debug(`connection accepted socketID=(${socket.id})`);
+    log.debug(`🔌Connection accepted socketID=(${socket.id})`);
 
     socket.on("disconnect", (reason) => {
-      log.debug(`socket ${socket.id} disconnected: ${reason}`);
+      log.debug(`🔌❌ socket ${socket.id} disconnected: ${reason}`);
     });
 
     // Example event
@@ -80,7 +81,7 @@ export default function createSocketServer(app) {
   const PORT = config.SOCKET_PORT;
 
   server.listen(PORT, "0.0.0.0", () => {
-    log.info(`Connected to SocketIO Server running on http://localhost:${PORT}`);
+    log.info(`[Socket 📡🔌]running on 🌐 - http://localhost:${PORT}`);
   });
 
   // Helpful server error logging

@@ -10,9 +10,8 @@ const upload = multer({
   storage:storage
 })
 
+router.post("/new-order", controller.HandleGetNewOrders);
 router.get('/gen-guest-token/:publicCode', controller.genGuestToken);
-router.get('/gen-business-token/:id', controller.genBusinessToken);
-
 
 
 export default router;
