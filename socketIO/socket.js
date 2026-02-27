@@ -46,6 +46,10 @@ export default function createSocketServer(app) {
       const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" }); // same key you sign with
       socket.user = decoded; // attach user info for later use
 
+      if(socket?.isBusiness == true) {
+        socket.join(`business:${socket.user.businessId}`);
+      }
+
       next();
     } catch (err) {
       log.err("JWT verify failed:", err.name, err.message);
@@ -70,7 +74,7 @@ export default function createSocketServer(app) {
       if (typeof ack === "function") ack({ success: true, ts: Date.now() });
     });
 
-    emitEvent(socket);
+    emitEvent(io,socket);
   });
 
   const PORT = config.SOCKET_PORT;
