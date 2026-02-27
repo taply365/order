@@ -20,6 +20,5 @@ async function sendOrderToBusiness(io, data) {
 }
 
 export {
-    saveSocketIdForBusiness,
     sendOrderToBusiness
 }
