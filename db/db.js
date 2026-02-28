@@ -18,4 +18,8 @@ async function RunQuery(query, params) {
     return result
 }
 
-export default RunQuery;
+// ⭐ important for transaction
+export { 
+    RunQuery,
+    pool
+}

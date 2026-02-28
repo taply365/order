@@ -1,113 +1,113 @@
-import RunQuery from "../db/db.js";
+import { pool } from "../db/db.js";
 import log from "minhluanlu-color-log";
 import { getIO } from "../socketIO/socket.js";
-
+import { orderStatus } from "../config.js";
 import { checkBusinessFeatureByName } from "../order/index.js";
 
-
-/*
-📤 Sent
-📦🚚 Order shipped
-🧾➡️ Order submitted
-✅📦 Order confirmed
-🚀📦 Fast send
-🔌 Connect
-📦➡️ Send order
-🔌❌ Disconnect
-⚠️📤 Send failed
-📤❌ Not sent
-🚫📤 Blocked send
-📦❌ Order failed
-🔴📤 Error sending
-
-🗄️ DataBase
-💾 Save / storage
-🧠 Data storage
-📊 Data
-📁 Data folder
-🗃️ Archive
-🖥️ Server
-☁️ Cloud database
-
-🤝 Joined
-📥 Join / enter
-🚪 Enter
-👤➕ Add user
-🔗 Join link
-✅ Joined successfully
-*/
-
-/*
-Other options:
-🪪 Token
-🎫 Access token
-🔐 Secure token
-⚙️🔑 Creating token
-✨🔑 New token
-📛 Token ID
-
-Status examples:
-
-Generate token: 🔑
-
-Token created: 🔑✅
-
-Token failed: 🔑❌
-
-Token expired: 🔑⏰
-
-Token error: 🔑⚠️
-*/
-
-
 const HandleGetNewOrders = async (req, res) => {
-    log.debug("Handling get new orders request");
-    const io = getIO();
-    const {receiverId, orders} = req.body;
+  log.debug("Handling get new orders request");
 
-    if(!receiverId || !orders) {
-        log.warn("Missing receiverId or order in request body");
-        return res.status(400).json({ message: "Missing receiverId or order" });
+  const io = getIO();
+  const connection = await pool.getConnection();
+
+  try {
+    const { receiverId, orders } = req.body;
+
+    if (!receiverId || orders == null) {
+      log.warn("Missing receiverId or orders in request body");
+      return res.status(400).json({ message: "Missing receiverId or orders" });
     }
-    
 
-    // get business id from database by uid //
-    let businessId = await RunQuery("SELECT id FROM businesses WHERE uid = ? LIMIT 1", [receiverId]);
-    if(businessId.length === 0) {
-        log.warn(`No business found with uid: ${receiverId}`);
-        return res.status(404).json({ message: "Business not found" });
+    await connection.beginTransaction();
+
+    // get business id from database by uid
+    const [businessRows] = await connection.query(
+      "SELECT id FROM businesses WHERE uid = ? LIMIT 1",
+      [receiverId]
+    );
+
+    if (!businessRows || businessRows.length === 0) {
+      log.warn(`No business found with uid: ${receiverId}`);
+      await connection.rollback();
+      return res.status(404).json({ message: "Business not found" });
     }
-    businessId = businessId[0].id;
 
-    // check if business has feature ORDER_ONLINE enabled //
+    const businessId = businessRows[0].id;
+
+    // check if business has feature ORDER_ONLINE enabled
     const hasFeature = await checkBusinessFeatureByName(businessId, "ORDER_ONLINE");
-    if(!hasFeature) {
-        log.warn(`Business with ID: ${businessId} does not have ORDER_ONLINE feature enabled`);
-        return res.status(403).json({
-            success: false, 
-            message: "Business current not accepting online orders" 
-        });
+    if (!hasFeature) {
+      log.warn(`Business with ID: ${businessId} does not have ORDER_ONLINE feature enabled`);
+      await connection.rollback();
+      return res.status(403).json({
+        success: false,
+        message: "Business is currently not accepting online orders",
+      });
     }
 
-    /// save order to database //
+    // save order to database
+    const [insertResult] = await connection.query(
+      "INSERT INTO orders (businessId, status, data) VALUES (?, ?, ?)",
+      [businessId, orderStatus.PENDING, JSON.stringify(orders)]
+    );
 
-    io.to(`business:${businessId}`).emit("new_order", orders, (response) => {
-        log.debug(`sending order to business room: ${businessId}`);
-        if(response && response.success){
-            log.info(`[ socket ✅📦] Order confirmed for business with ID: ${receiverId}`);
-        } else {
-            log.warn(`[socket ⚠️📤] Failed to send order to business with ID: ${receiverId}`);
-        }
+    if (!insertResult?.insertId) {
+      log.warn(`Failed to save order to database for business ID: ${businessId}`);
+      await connection.rollback();
+      return res.status(500).json({
+        success: false,
+        message: "Failed to save order to database",
+      });
+    }
+
+    // get order details
+    const [orderRows] = await connection.query(
+      "SELECT * FROM orders WHERE id = ? LIMIT 1",
+      [insertResult.insertId]
+    );
+
+    const orderDetails = orderRows?.[0];
+    if (!orderDetails) {
+      log.warn(`Failed to get order details for order ID: ${insertResult.insertId}`);
+      await connection.rollback();
+      return res.status(500).json({
+        success: false,
+        message: "Failed to get order details",
+      });
+    }
+
+    await connection.commit();
+
+    io.to(`business:${businessId}`).emit("new_order", orderDetails, (response) => {
+      log.debug(`sending order to business room: ${businessId}`);
+      if (response?.success) {
+        log.info(`[socket ✅📦] Order confirmed for business with uid: ${receiverId}`);
+      } else {
+        log.warn(`[socket ⚠️📤] Failed to send order to business with uid: ${receiverId}`);
+      }
     });
 
-    res.status(200).json({
-        success: true,
-        message: "Order sent to business successfully",
-        data: orders
+    log.debug(`💾 Saved order and emitted to business room: ${businessId} successfully`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Order sent to business successfully",
+      data: orderDetails,
     });
-}
+  } catch (error) {
+    log.err("Error handling get new orders request: ", error);
+    try {
+      await connection.rollback();
+    } catch (_) {
+      // ignore rollback errors
+    }
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  } finally {
+    connection.release();
+  }
+};
 
-
-export {
-    HandleGetNewOrders
-}
+export { HandleGetNewOrders };
