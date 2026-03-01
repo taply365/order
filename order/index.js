@@ -32,3 +32,14 @@ export async function checkBusinessFeatureByName(businessId, name) {
     }
 }
 
+export function calculateTotalPrice(orders) {
+    let totalPrice = 0; 
+    for (const order of orders) {
+        for (const item of order?.data || []) {
+            const quantity = item.quantity || 1;
+            totalPrice += item.price * quantity;
+        }
+    }
+    log.debug(`Calculated total price: ${totalPrice}`);
+    return totalPrice
+}

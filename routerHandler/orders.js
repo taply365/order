@@ -2,7 +2,7 @@ import { pool } from "../db/db.js";
 import log from "minhluanlu-color-log";
 import { getIO } from "../socketIO/socket.js";
 import { orderStatus } from "../config.js";
-import { checkBusinessFeatureByName } from "../order/index.js";
+import { checkBusinessFeatureByName, calculateTotalPrice } from "../order/index.js";
 
 const HandleGetNewOrders = async (req, res) => {
   log.debug("Handling get new orders request");
@@ -22,7 +22,7 @@ const HandleGetNewOrders = async (req, res) => {
 
     // get business id from database by uid
     const [businessRows] = await connection.query(
-      "SELECT id FROM businesses WHERE uid = ? LIMIT 1",
+      "SELECT id, currency FROM businesses WHERE uid = ? LIMIT 1",
       [receiverId]
     );
 
@@ -33,7 +33,7 @@ const HandleGetNewOrders = async (req, res) => {
     }
 
     const businessId = businessRows[0].id;
-
+    const businessCurrency = businessRows[0].currency || "USD";
     // check if business has feature ORDER_ONLINE enabled
     const hasFeature = await checkBusinessFeatureByName(businessId, "ORDER_ONLINE");
     if (!hasFeature) {
@@ -45,10 +45,12 @@ const HandleGetNewOrders = async (req, res) => {
       });
     }
 
+    const totalPrice = calculateTotalPrice(orders);
+
     // save order to database
     const [insertResult] = await connection.query(
-      "INSERT INTO orders (businessId, status, data) VALUES (?, ?, ?)",
-      [businessId, orderStatus.PENDING, JSON.stringify(orders)]
+      "INSERT INTO orders (businessId, status, data, currency, totalPrice) VALUES (?, ?, ?, ?, ?)",
+      [businessId, orderStatus.PENDING, JSON.stringify(orders), businessCurrency, totalPrice]
     );
 
     if (!insertResult?.insertId) {
@@ -96,6 +98,7 @@ const HandleGetNewOrders = async (req, res) => {
     });
   } catch (error) {
     log.err("Error handling get new orders request: ", error);
+    console.log(error)
     try {
       await connection.rollback();
     } catch (_) {
