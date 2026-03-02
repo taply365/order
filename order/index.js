@@ -43,3 +43,56 @@ export function calculateTotalPrice(orders) {
     log.debug(`Calculated total price: ${totalPrice}`);
     return totalPrice
 }
+
+
+
+export async function getOrderById(orderId) {
+    try {
+        const orders = await RunQuery(`
+            SELECT *
+            FROM orders o
+            JOIN businesses b ON o.businessId = b.id
+            WHERE o.id = ?
+            LIMIT 1
+        `, [orderId]);
+
+        return orders.length > 0 ? orders[0] : null;
+    } catch (error) {
+        console.error("Error fetching order by ID:", error);
+        throw error;
+    }
+}
+
+export async function updateOrderStatus(orderId, status) {
+    try {
+        const result = await RunQuery(`
+            UPDATE orders
+            SET status = ?
+            WHERE id = ?
+        `, [status, orderId]);
+            
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error("Error updating order status:", error);
+        throw error;
+    }
+}
+
+
+export async function getTodayOrdersForBusiness(businessId, status) {
+    try {
+        const results = await RunQuery(`
+            SELECT *
+            FROM orders
+            WHERE businessId = ?
+            AND DATE(createdAt) = CURDATE()
+            AND (status = ? OR status = ?)
+            ORDER BY createdAt DESC
+        `, [businessId, status, "READY"]);
+        return results;
+    }
+    catch (error) {
+        console.error("Error fetching today's orders for business:", error);
+        throw error;
+    }
+}

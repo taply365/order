@@ -10,8 +10,18 @@ const upload = multer({
   storage:storage
 })
 
-router.post("/new-order", controller.HandleGetNewOrders);
+// get //
+router.get("/order/:id", controller.HandleGetOrderDetails);
+router.get("/business/:id/orders/status/:status/today", controller.HandleGetTodayOrders);
 router.get('/gen-guest-token/:publicCode', controller.genGuestToken);
+
+
+// post //
+router.post("/new-order", controller.HandleGetNewOrders);
+
+// put //
+router.put("/order/:id/status", controller.HandleUpdateOrderStatus);
+
 
 
 export default router;

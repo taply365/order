@@ -17,7 +17,7 @@ async function genGuestToken(req, res) {
         const token = jwt.sign(
             { guestId: publicCode , isBusiness: false},
             process.env.SECRET_KEY,
-            { expiresIn: "15m" }
+            { expiresIn: "45m" }
         );
 
         log.debug(`🔑✅ Guest token generated successfully.`);

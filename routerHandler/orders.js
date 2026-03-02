@@ -2,7 +2,7 @@ import { pool } from "../db/db.js";
 import log from "minhluanlu-color-log";
 import { getIO } from "../socketIO/socket.js";
 import { orderStatus } from "../config.js";
-import { checkBusinessFeatureByName, calculateTotalPrice } from "../order/index.js";
+import { checkBusinessFeatureByName, calculateTotalPrice, getOrderById, updateOrderStatus, getTodayOrdersForBusiness} from "../order/index.js";
 
 const HandleGetNewOrders = async (req, res) => {
   log.debug("Handling get new orders request");
@@ -22,7 +22,13 @@ const HandleGetNewOrders = async (req, res) => {
 
     // get business id from database by uid
     const [businessRows] = await connection.query(
-      "SELECT id, currency FROM businesses WHERE uid = ? LIMIT 1",
+      `
+      SELECT b.id AS businessId, u.currency
+      FROM businesses b
+      JOIN users u ON u.uid = b.uid
+      WHERE b.uid = ?
+      LIMIT 1
+      `,
       [receiverId]
     );
 
@@ -32,8 +38,8 @@ const HandleGetNewOrders = async (req, res) => {
       return res.status(404).json({ message: "Business not found" });
     }
 
-    const businessId = businessRows[0].id;
-    const businessCurrency = businessRows[0].currency || "USD";
+    const businessId = businessRows[0].businessId;
+    const businessCurrency = businessRows[0].currency || "";
     // check if business has feature ORDER_ONLINE enabled
     const hasFeature = await checkBusinessFeatureByName(businessId, "ORDER_ONLINE");
     if (!hasFeature) {
@@ -113,4 +119,90 @@ const HandleGetNewOrders = async (req, res) => {
   }
 };
 
-export { HandleGetNewOrders };
+
+async function HandleGetOrderDetails(req, res) {
+  log.debug("Handling get order details request");
+  const { id } = req.params;
+
+  if (!id) {
+    log.warn("Missing id in request parameters");
+    return res.status(400).json({ message: "Missing id" });
+  }
+
+  try {
+    const order = await getOrderById(id);
+    if (!order) {
+      log.warn(`Order with ID ${id} not found`);
+      return res.status(404).json({ message: "Order not found" });
+    }
+    return res.status(200).json({
+      success: true,
+      data: order,
+    });
+  } catch (error) {
+    log.err("Error handling get order details request: ", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+}
+
+async function HandleUpdateOrderStatus(req, res) {
+  log.debug("Handling update order status request");
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!id || !status) {
+    log.warn("Missing id or status in request");
+    return res.status(400).json({ message: "Missing id or status" });
+  }
+
+  try {
+    const isUpdated = await updateOrderStatus(id, status);
+    if (!isUpdated) {
+      log.warn(`Failed to update order status for order ID: ${id}`);
+      return res.status(500).json({ message: "Failed to update order status" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Order status updated successfully",
+    });
+  } catch (error) {
+    log.err("Error handling update order status request: ", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+}
+
+
+
+async function HandleGetTodayOrders(req, res) {
+  const businessId = req.params.id;
+  const status = req.params.status;
+
+  if (!businessId) {
+    log.warn("Missing businessId in request parameters");
+    return res.status(400).json({ message: "Missing businessId" });
+  }
+
+  log.debug(`Handling get today orders request for business ID: ${businessId}`);
+  try {
+    const orders = await getTodayOrdersForBusiness(businessId, status);
+    return res.status(200).json({
+      success: true,
+      data: orders,
+    });
+  } catch (error) {
+    log.err("Error handling get today orders request: ", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+}
+
+export { HandleGetNewOrders, HandleGetOrderDetails, HandleUpdateOrderStatus, HandleGetTodayOrders };
