@@ -32,17 +32,24 @@ export async function checkBusinessFeatureByName(businessId, name) {
     }
 }
 
-export function calculateTotalPrice(orders) {
-    let totalPrice = 0; 
-    for (const order of orders) {
-        for (const item of order?.data || []) {
-            const quantity = item.quantity || 1;
-            totalPrice += item.price * quantity;
-        }
-    }
-    log.debug(`Calculated total price: ${totalPrice}`);
-    return totalPrice
-}
+export const calculateTotalPrice = (orders) => {
+    console.log("Calculating total price for orders:", orders);
+    let total = 0;
+    orders.forEach((item) => {
+      const quantity = item.quantity || 1;
+      // Price is in item.data[0].price
+      const basePrice = parseFloat(item.data?.[0]?.price) || 0;
+      let extrasPrice = 0;
+      if (item.extras && Array.isArray(item.extras)) {
+        item.extras.forEach((extra) => {
+          extrasPrice += parseFloat(extra.price) || 0;
+        });
+      }
+      total += (basePrice + extrasPrice) * quantity;
+    });
+    console.log("Total price calculated:", total);
+    return total;
+};
 
 
 

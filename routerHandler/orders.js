@@ -18,6 +18,8 @@ const HandleGetNewOrders = async (req, res) => {
       return res.status(400).json({ message: "Missing receiverId or orders" });
     }
 
+    console.log("Received new order request: ", orders);
+
     await connection.beginTransaction();
 
     // get business id from database by uid
