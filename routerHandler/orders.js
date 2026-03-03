@@ -45,8 +45,6 @@ const HandleGetNewOrders = async (req, res) => {
     const businessCurrency = businessRows[0].currency || "";
     const openHours = businessRows[0].openHours || null;
 
-    console.log(openHours)
-
     const { isOpen, reason } = await checkBusinessOpenHours(openHours);
     if (!isOpen) {
       log.warn(`Business with ID: ${businessId}: ${reason}`);
