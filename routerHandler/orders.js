@@ -171,6 +171,7 @@ async function HandleGetOrderDetailsByJwt(req, res) {
       log.warn(`Order with ID ${id} not found`);
       return res.status(404).json({ message: "Order not found" });
     }
+
     return res.status(200).json({
       success: true,
       data: order,

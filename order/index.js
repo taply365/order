@@ -121,21 +121,28 @@ export const calculateTotalPrice = (orders) => {
 
 
 export async function getOrderById(orderId) {
-    try {
-        const orders = await RunQuery(`
-            SELECT *
-            FROM orders o
-            JOIN businesses b ON o.businessId = b.id
-            WHERE o.id = ?
-            LIMIT 1
-        `, [orderId]);
+  const rows = await RunQuery(`
+    SELECT
+      o.id AS id,
+      o.businessId AS orderBusinessId,
+      o.data,
+      o.status,
+      o.createdAt,
+      o.updatedAt,
+      o.totalPrice,
+      o.currency,
+      b.id AS businessId,
+      b.name AS businessName
+    FROM orders o
+    JOIN businesses b ON o.businessId = b.id
+    WHERE o.id = ?
+    LIMIT 1
+  `, [orderId]);
 
-        return orders.length > 0 ? orders[0] : null;
-    } catch (error) {
-        console.error("Error fetching order by ID:", error);
-        throw error;
-    }
+  return rows.length ? rows[0] : null;
 }
+
+
 
 export async function updateOrderStatus(orderId, status) {
     try {
