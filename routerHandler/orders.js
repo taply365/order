@@ -1,8 +1,9 @@
 import { pool } from "../db/db.js";
 import log from "minhluanlu-color-log";
 import { getIO } from "../socketIO/socket.js";
+import jwt from "jsonwebtoken";
 import { orderStatus } from "../config.js";
-import { checkBusinessFeatureByName, calculateTotalPrice, getOrderById, updateOrderStatus, getTodayOrdersForBusiness} from "../order/index.js";
+import { checkBusinessFeatureByName, calculateTotalPrice, getOrderById, updateOrderStatus, checkBusinessOpenHours, getTodayOrdersForBusiness} from "../order/index.js";
 
 const HandleGetNewOrders = async (req, res) => {
   log.debug("Handling get new orders request");
@@ -25,7 +26,7 @@ const HandleGetNewOrders = async (req, res) => {
     // get business id from database by uid
     const [businessRows] = await connection.query(
       `
-      SELECT b.id AS businessId, u.currency
+      SELECT b.id AS businessId, b.openHours AS openHours, u.currency
       FROM businesses b
       JOIN users u ON u.uid = b.uid
       WHERE b.uid = ?
@@ -42,6 +43,19 @@ const HandleGetNewOrders = async (req, res) => {
 
     const businessId = businessRows[0].businessId;
     const businessCurrency = businessRows[0].currency || "";
+    const openHours = businessRows[0].openHours || null;
+
+    console.log(openHours)
+
+    const { isOpen, reason } = await checkBusinessOpenHours(openHours);
+    if (!isOpen) {
+      log.warn(`Business with ID: ${businessId}: ${reason}`);
+      await connection.rollback();
+      return res.status(403).json({
+        success: false,
+        message: reason || "Business is currently closed based on open hours",
+      });
+    }
     // check if business has feature ORDER_ONLINE enabled
     const hasFeature = await checkBusinessFeatureByName(businessId, "ORDER_ONLINE");
     if (!hasFeature) {
@@ -99,10 +113,17 @@ const HandleGetNewOrders = async (req, res) => {
 
     log.debug(`💾 Saved order and emitted to business room: ${businessId} successfully`);
 
+    const receiptToken = jwt.sign(
+        { orderId: orderDetails.id},
+        process.env.SECRET_KEY,
+        { expiresIn: "45m" }
+    );
+
     return res.status(200).json({
       success: true,
       message: "Order sent to business successfully",
       data: orderDetails,
+      receiptToken,
     });
   } catch (error) {
     log.err("Error handling get new orders request: ", error);
@@ -122,13 +143,26 @@ const HandleGetNewOrders = async (req, res) => {
 };
 
 
-async function HandleGetOrderDetails(req, res) {
+async function HandleGetOrderDetailsByJwt(req, res) {
   log.debug("Handling get order details request");
-  const { id } = req.params;
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    log.warn("Missing authorization token in request headers");
+    return res.status(401).json({ success: false, message: "Missing authorization token" });
+  }
+
+  let id;
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" }); 
+    id = decoded.orderId;
+  } catch (error) {
+    log.warn("Invalid authorization token");
+    return res.status(401).json({success:false,  message: "Invalid authorization token" });
+  }
 
   if (!id) {
     log.warn("Missing id in request parameters");
-    return res.status(400).json({ message: "Missing id" });
+    return res.status(400).json({ success: false, message: "Missing id" });
   }
 
   try {
@@ -207,4 +241,4 @@ async function HandleGetTodayOrders(req, res) {
   }
 }
 
-export { HandleGetNewOrders, HandleGetOrderDetails, HandleUpdateOrderStatus, HandleGetTodayOrders };
+export { HandleGetNewOrders, HandleGetOrderDetailsByJwt, HandleUpdateOrderStatus, HandleGetTodayOrders };
