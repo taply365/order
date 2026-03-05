@@ -54,10 +54,10 @@ const HandleGetNewOrders = async (req, res) => {
         message: reason || "Business is currently closed based on open hours",
       });
     }
-    // check if business has feature ORDER_ONLINE enabled
-    const hasFeature = await checkBusinessFeatureByName(businessId, "ORDER_ONLINE");
+    // check if business has feature ONLINE_ORDERING enabled
+    const hasFeature = await checkBusinessFeatureByName(businessId, "ONLINE_ORDERING");
     if (!hasFeature) {
-      log.warn(`Business with ID: ${businessId} does not have ORDER_ONLINE feature enabled`);
+      log.warn(`Business with ID: ${businessId} does not have ONLINE_ORDERING feature enabled`);
       await connection.rollback();
       return res.status(403).json({
         success: false,
