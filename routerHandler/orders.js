@@ -175,7 +175,8 @@ async function HandleGetOrderDetailsByJwt(req, res) {
       data: order,
     });
   } catch (error) {
-    log.err("Error handling get order details request: ", error);
+    log.err("Error handling get order details request: ");
+    console.log(error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
