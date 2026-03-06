@@ -13,7 +13,7 @@ const upload = multer({
 // get //
 router.get("/order", controller.HandleGetOrderDetailsByJwt);
 router.get("/business/:id/orders/status/:status/today", controller.HandleGetTodayOrders);
-router.get('/gen-guest-token/:id', controller.genGuestToken);
+router.get('/gen-guest-token', controller.genGuestToken);
 router.get("/business/:uid/open-hours", controller.HandleCheckBusinessOpenHours);
 
 
@@ -21,7 +21,7 @@ router.get("/business/:uid/open-hours", controller.HandleCheckBusinessOpenHours)
 router.post("/new-order", controller.HandleGetNewOrders);
 
 // put //
-router.put("/order/:id/status", controller.HandleUpdateOrderStatus);
+router.put("/order/status", controller.HandleUpdateOrderStatus);
 
 
 

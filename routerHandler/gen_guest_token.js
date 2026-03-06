@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 async function genGuestToken(req, res) {
     try {
         log.info("🔑 Generating guest token...");
-        const guestId = req.params.id;
+        const guestId = req.query.guestId;
         if (!process.env.SECRET_KEY) {
             log.err("SECRET_KEY not configured");
             return res.status(500).json({

@@ -12,7 +12,7 @@ import {
   getTodayOrdersForBusiness
 } from "../order/index.js";
 import { sendOrderStatusToCustomer } from "../order/customer.js";
-import { getGuestIdFromToken } from "../auth/index.js";
+import { getJwtTokenData } from "../auth/index.js";
 
 const HandleGetNewOrders = async (req, res) => {
   log.debug("Handling get new orders request");
@@ -23,7 +23,7 @@ const HandleGetNewOrders = async (req, res) => {
 
   try {
     const { receiverId, orders } = req.body;
-    const guestId = await getGuestIdFromToken(req);
+    const  { guestId } = await getJwtTokenData(req);
 
     if (!receiverId || orders == null) {
       log.warn("Missing receiverId or orders in request body");
@@ -198,8 +198,7 @@ async function HandleGetOrderDetailsByJwt(req, res) {
 
 async function HandleUpdateOrderStatus(req, res) {
   log.debug("Handling update order status request");
-  const { id } = req.params;
-  const { status, customerId } = req.body;
+  const {id, status, customerId, data, business } = req.body;
 
   if (!id || !status) {
     log.warn("Missing id or status in request");
@@ -213,7 +212,10 @@ async function HandleUpdateOrderStatus(req, res) {
       return res.status(500).json({ message: "Failed to update order status" });
     }
 
-    const send = await sendOrderStatusToCustomer(customerId, id, status);
+    const itemImage = data?.[0]?.images?.[0] || "";
+    const icon = business?.logo || "";
+
+    const send = await sendOrderStatusToCustomer(customerId, id, status, itemImage, icon);
     if(!send){
       log.warn(`Failed to send order status update to customer for order ID: ${id}`);
     }
