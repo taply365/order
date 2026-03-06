@@ -135,7 +135,9 @@ export async function getOrderById(orderId) {
       b.name AS businessName,
       b.address AS businessAddress,
       b.Phone AS businessPhone,
-      b.logo AS businessLogo
+      b.logo AS businessLogo,
+      b.openHours AS businessOpenHours,
+      b.theme AS businessTheme
     FROM orders o
     JOIN businesses b ON o.businessId = b.id
     WHERE o.id = ?
