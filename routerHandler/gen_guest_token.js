@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 async function genGuestToken(req, res) {
     try {
         log.info("🔑 Generating guest token...");
-        const publicCode = req.params.publicCode;
+        const guestId = req.params.id;
         if (!process.env.SECRET_KEY) {
             log.err("SECRET_KEY not configured");
             return res.status(500).json({
@@ -15,7 +15,7 @@ async function genGuestToken(req, res) {
         }
 
         const token = jwt.sign(
-            { guestId: publicCode , isBusiness: false},
+            { guestId: guestId , isBusiness: false},
             process.env.SECRET_KEY,
             { expiresIn: "45m" }
         );
@@ -23,7 +23,7 @@ async function genGuestToken(req, res) {
         log.debug(`🔑✅ Guest token generated successfully.`);
         return res.status(200).json({
             success: true,
-            message: `Guest token generated for public code: ${token}`,
+            message: `Guest token generated for guest ID: ${guestId}`,
             token: token
         });
 

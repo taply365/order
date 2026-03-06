@@ -11,9 +11,9 @@ const upload = multer({
 })
 
 // get //
-router.get("/order/", controller.HandleGetOrderDetailsByJwt);
+router.get("/order", controller.HandleGetOrderDetailsByJwt);
 router.get("/business/:id/orders/status/:status/today", controller.HandleGetTodayOrders);
-router.get('/gen-guest-token/:publicCode', controller.genGuestToken);
+router.get('/gen-guest-token/:id', controller.genGuestToken);
 router.get("/business/:uid/open-hours", controller.HandleCheckBusinessOpenHours);
 
 

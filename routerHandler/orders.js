@@ -1,18 +1,29 @@
 import { pool } from "../db/db.js";
 import log from "minhluanlu-color-log";
-import { getIO } from "../socketIO/socket.js";
+import { getIO, getLastSocket } from "../socketIO/socket.js";
 import jwt from "jsonwebtoken";
 import { orderStatus } from "../config.js";
-import { checkBusinessFeatureByName, calculateTotalPrice, getOrderById, updateOrderStatus, checkBusinessOpenHours, getTodayOrdersForBusiness} from "../order/index.js";
+import { 
+  checkBusinessFeatureByName, 
+  calculateTotalPrice, 
+  getOrderById, 
+  updateOrderStatus, 
+  checkBusinessOpenHours, 
+  getTodayOrdersForBusiness
+} from "../order/index.js";
+import { sendOrderStatusToCustomer } from "../order/customer.js";
+import { getGuestIdFromToken } from "../auth/index.js";
 
 const HandleGetNewOrders = async (req, res) => {
   log.debug("Handling get new orders request");
 
   const io = getIO();
+  const socket = getLastSocket();
   const connection = await pool.getConnection();
 
   try {
     const { receiverId, orders } = req.body;
+    const guestId = await getGuestIdFromToken(req);
 
     if (!receiverId || orders == null) {
       log.warn("Missing receiverId or orders in request body");
@@ -69,8 +80,8 @@ const HandleGetNewOrders = async (req, res) => {
 
     // save order to database
     const [insertResult] = await connection.query(
-      "INSERT INTO orders (businessId, status, data, currency, totalPrice) VALUES (?, ?, ?, ?, ?)",
-      [businessId, orderStatus.PENDING, JSON.stringify(orders), businessCurrency, totalPrice]
+      "INSERT INTO orders (businessId, customerId, status, data, currency, totalPrice) VALUES (?, ?, ?, ?, ?, ?)",
+      [businessId, guestId, orderStatus.PENDING, JSON.stringify(orders), businessCurrency, totalPrice]
     );
 
     if (!insertResult?.insertId) {
@@ -111,8 +122,9 @@ const HandleGetNewOrders = async (req, res) => {
 
     log.debug(`💾 Saved order and emitted to business room: ${businessId} successfully`);
 
-    const receiptToken = jwt.sign(
-        { orderId: orderDetails.id},
+
+    const token = jwt.sign(
+        { orderId: orderDetails.id, guestId: guestId, isBusiness: false},
         process.env.SECRET_KEY,
         { expiresIn: "45m" }
     );
@@ -121,7 +133,7 @@ const HandleGetNewOrders = async (req, res) => {
       success: true,
       message: "Order sent to business successfully",
       data: orderDetails,
-      receiptToken,
+      token,
     });
   } catch (error) {
     log.err("Error handling get new orders request: ", error);
@@ -187,7 +199,7 @@ async function HandleGetOrderDetailsByJwt(req, res) {
 async function HandleUpdateOrderStatus(req, res) {
   log.debug("Handling update order status request");
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, customerId } = req.body;
 
   if (!id || !status) {
     log.warn("Missing id or status in request");
@@ -200,6 +212,12 @@ async function HandleUpdateOrderStatus(req, res) {
       log.warn(`Failed to update order status for order ID: ${id}`);
       return res.status(500).json({ message: "Failed to update order status" });
     }
+
+    const send = await sendOrderStatusToCustomer(customerId, id, status);
+    if(!send){
+      log.warn(`Failed to send order status update to customer for order ID: ${id}`);
+    }
+    log.debug(`Order status updated and customer notified for order ID: ${id}`);
 
     return res.status(200).json({
       success: true,

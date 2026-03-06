@@ -51,6 +51,11 @@ export default function createSocketServer(app) {
         log.debug(`🤝 Joined business room: ${socket.user?.businessId}`);
       } 
 
+      if(socket?.user?.guestId != undefined && socket?.user?.guestId != null){
+        socket.join(`guest:${socket.user?.guestId}`);
+        log.debug(`🤝 Joined guest room: ${socket.user?.guestId}`);
+      }
+
       next();
     } catch (err) {
       log.err("JWT verify failed:", err.name, err.message);
