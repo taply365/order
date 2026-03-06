@@ -25,6 +25,11 @@ const HandleGetNewOrders = async (req, res) => {
     const { receiverId, orders } = req.body;
     const  { guestId } = await getJwtTokenData(req);
 
+    if (!guestId) {
+      log.warn("Unauthorized request: Missing or invalid JWT token");
+      return res.status(401).json({ message: "Unauthorized: Missing or invalid token" });
+    }
+
     if (!receiverId || orders == null) {
       log.warn("Missing receiverId or orders in request body");
       return res.status(400).json({ message: "Missing receiverId or orders" });
