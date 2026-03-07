@@ -177,7 +177,12 @@ async function HandleGetOrderDetailsByJwt(req, res) {
 
   if (!id) {
     log.warn("Missing id in request parameters");
-    return res.status(400).json({ success: false, message: "Missing id" });
+    log.warn(`Decoded JWT token does not contain orderId: ${JSON.stringify(jwt.decode(token))}`);
+    id = req.params.id; // fallback to URL parameter if not in token
+    if (!id) {
+      log.warn("Missing orderId in both JWT token and URL parameters");
+      return res.status(400).json({ success: false, message: "Missing orderId" });
+    }
   }
 
   try {
