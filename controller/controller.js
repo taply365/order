@@ -1,7 +1,7 @@
 import { HandleGetNewOrders, HandleGetOrderDetailsByJwt, HandleUpdateOrderStatus, HandleGetTodayOrders, HandleOrderPaymentSuccess } from "../routerHandler/orders.js";
 import { genGuestToken } from "../routerHandler/gen_guest_token.js";
 import { HandleCheckBusinessOpenHours } from "../routerHandler/businesses.js";
-
+import { HandleGetPaymentByPaymentIntentId } from "../routerHandler/payments.js";
 
 const Controller = {
    HandleGetNewOrders,
@@ -10,7 +10,8 @@ const Controller = {
    HandleGetTodayOrders,
    HandleOrderPaymentSuccess,
    genGuestToken,
-   HandleCheckBusinessOpenHours
+   HandleCheckBusinessOpenHours,
+   HandleGetPaymentByPaymentIntentId
 }
 
 

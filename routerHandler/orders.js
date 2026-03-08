@@ -123,7 +123,12 @@ const HandleGetNewOrders = async (req, res) => {
       });
     }
 
+
     await connection.commit();
+
+    // update order with paymentIntentId
+    const { paymentIntentId } = create_payment;
+    await RunQuery(`UPDATE orders SET paymentIntentId = ? WHERE id = ?`, [paymentIntentId, orderDetails.id]);
 
     const token = jwt.sign(
         { orderId: orderDetails.id, guestId: guestId, isBusiness: false},
@@ -280,6 +285,7 @@ async function HandleOrderPaymentSuccess(req, res) {
   log.debug(`[⏳📦]Handling order payment success for order ID: ${orderId} and paymentIntentId: ${paymentIntentId}`);
 
   await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,[orderStatus.PREPARING, orderId]);
+  await RunQuery(`UPDATE payments SET status = ? WHERE paymentIntentId = ?`, ["succeeded", paymentIntentId]);
   const order = await getOrderById(orderId);
   if(!order){
     log.warn(`[❌]Order with ID ${orderId} not found after payment success`);
