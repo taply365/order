@@ -20,8 +20,10 @@ router.get("/business/:uid/open-hours", controller.HandleCheckBusinessOpenHours)
 // post //
 router.post("/new-order", controller.HandleGetNewOrders);
 
+
 // put //
 router.put("/order/status", controller.HandleUpdateOrderStatus);
+router.put("/order/:orderId/payment-success/:paymentIntentId", controller.HandleOrderPaymentSuccess);
 
 
 

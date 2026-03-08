@@ -94,13 +94,13 @@ export async function checkBusinessFeatureByName(businessId, name) {
         return feature[0].isEnabled === 1 ? true : false;
 
     } catch (error) {
-        console.error("Error fetching business features:", error);
+        log.err(`[❌]Error fetching business features: ${error.message}`);
         throw error;
     }
 }
 
 export const calculateTotalPrice = (orders) => {
-    console.log("Calculating total price for orders:", orders);
+    log.info(`[💸]Calculating total price for orders:`, orders);
     let total = 0;
     orders.forEach((item) => {
       const quantity = item.quantity || 1;
@@ -114,7 +114,7 @@ export const calculateTotalPrice = (orders) => {
       }
       total += (basePrice + extrasPrice) * quantity;
     });
-    console.log("Total price calculated:", total);
+    log.info(`[💸]Total price calculated: ${total}`);
     return total;
 };
 
@@ -125,6 +125,7 @@ export async function getOrderById(orderId) {
     SELECT
       o.id AS id,
       o.businessId AS orderBusinessId,
+      o.customerId AS customerId,
       o.data,
       o.status,
       o.createdAt,
@@ -159,7 +160,7 @@ export async function updateOrderStatus(orderId, status) {
             
         return result.affectedRows > 0;
     } catch (error) {
-        console.error("Error updating order status:", error);
+        log.err(`[❌]Error updating order status: ${error.message}`);
         throw error;
     }
 }
@@ -178,7 +179,9 @@ export async function getTodayOrdersForBusiness(businessId, status) {
         return results;
     }
     catch (error) {
-        console.error("Error fetching today's orders for business:", error);
+        log.err(`[❌]Error fetching today's orders for business: ${error.message}`);
         throw error;
     }
 }
+
+

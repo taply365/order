@@ -1,4 +1,4 @@
-import { pool } from "../db/db.js";
+import { pool, RunQuery } from "../db/db.js";
 import log from "minhluanlu-color-log";
 import { getIO, getLastSocket } from "../socketIO/socket.js";
 import jwt from "jsonwebtoken";
@@ -13,12 +13,11 @@ import {
 } from "../order/index.js";
 import { sendOrderStatusToCustomer } from "../order/customer.js";
 import { getJwtTokenData } from "../auth/index.js";
+import { HandleCreatePayment } from "../payment/index.js";
+
 
 const HandleGetNewOrders = async (req, res) => {
   log.debug("Handling get new orders request");
-
-  const io = getIO();
-  const socket = getLastSocket();
   const connection = await pool.getConnection();
 
   try {
@@ -26,16 +25,16 @@ const HandleGetNewOrders = async (req, res) => {
     const  { guestId } = await getJwtTokenData(req);
 
     if (!guestId) {
-      log.warn("Unauthorized request: Missing or invalid JWT token");
+      log.warn("[⏳]Unauthorized request: Missing or invalid JWT token");
       return res.status(401).json({ message: "Unauthorized: Missing or invalid token" });
     }
 
     if (!receiverId || orders == null) {
-      log.warn("Missing receiverId or orders in request body");
+      log.warn("[⏳]Missing receiverId or orders in request body");
       return res.status(400).json({ message: "Missing receiverId or orders" });
     }
 
-    console.log("Received new order request: ", orders);
+    log.info(`[⏳📦]Processing new order request for business with uid: ${receiverId} from guest with id: ${guestId}`);
 
     await connection.beginTransaction();
 
@@ -63,7 +62,7 @@ const HandleGetNewOrders = async (req, res) => {
 
     const { isOpen, reason } = await checkBusinessOpenHours(openHours);
     if (!isOpen) {
-      log.warn(`Business with ID: ${businessId}: ${reason}`);
+      log.warn(`[⏳]Business with ID: ${businessId}: ${reason}`);
       await connection.rollback();
       return res.status(403).json({
         success: false,
@@ -73,7 +72,7 @@ const HandleGetNewOrders = async (req, res) => {
     // check if business has feature ONLINE_ORDERING enabled
     const hasFeature = await checkBusinessFeatureByName(businessId, "ONLINE_ORDERING");
     if (!hasFeature) {
-      log.warn(`Business with ID: ${businessId} does not have ONLINE_ORDERING feature enabled`);
+      log.warn(`[⏳]Business with ID: ${businessId} does not have ONLINE_ORDERING feature enabled`);
       await connection.rollback();
       return res.status(403).json({
         success: false,
@@ -90,7 +89,7 @@ const HandleGetNewOrders = async (req, res) => {
     );
 
     if (!insertResult?.insertId) {
-      log.warn(`Failed to save order to database for business ID: ${businessId}`);
+      log.warn(`[📛]Failed to save order to database for business ID: ${businessId}`);
       await connection.rollback();
       return res.status(500).json({
         success: false,
@@ -106,7 +105,7 @@ const HandleGetNewOrders = async (req, res) => {
 
     const orderDetails = orderRows?.[0];
     if (!orderDetails) {
-      log.warn(`Failed to get order details for order ID: ${insertResult.insertId}`);
+      log.warn(`[📛]Failed to get order details for order ID: ${insertResult.insertId}`);
       await connection.rollback();
       return res.status(500).json({
         success: false,
@@ -114,19 +113,17 @@ const HandleGetNewOrders = async (req, res) => {
       });
     }
 
+    const create_payment = await HandleCreatePayment(orderDetails);
+    if(!create_payment){
+      log.warn(`[💳❌]Payment processing failed for order ID: ${orderDetails.id}`);
+      await connection.rollback();
+      return res.status(500).json({
+        success: false,
+        message: "Failed to process payment",
+      });
+    }
+
     await connection.commit();
-
-    io.to(`business:${businessId}`).emit("new_order", orderDetails, (response) => {
-      log.debug(`sending order to business room: ${businessId}`);
-      if (response?.success) {
-        log.info(`[socket ✅📦] Order confirmed for business with uid: ${receiverId}`);
-      } else {
-        log.warn(`[socket ⚠️📤] Failed to send order to business with uid: ${receiverId}`);
-      }
-    });
-
-    log.debug(`💾 Saved order and emitted to business room: ${businessId} successfully`);
-
 
     const token = jwt.sign(
         { orderId: orderDetails.id, guestId: guestId, isBusiness: false},
@@ -136,13 +133,13 @@ const HandleGetNewOrders = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Order sent to business successfully",
+      message: "Order created successfully",
       data: orderDetails,
+      payment: create_payment,
       token,
     });
   } catch (error) {
-    log.err("Error handling get new orders request: ", error);
-    console.log(error)
+    log.err(`[❌]Error handling get new orders request: ${error.message}`);
     try {
       await connection.rollback();
     } catch (_) {
@@ -159,10 +156,10 @@ const HandleGetNewOrders = async (req, res) => {
 
 
 async function HandleGetOrderDetailsByJwt(req, res) {
-  log.debug("Handling get order details request");
+  log.debug("[⏳]Handling get order details request");
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
-    log.warn("Missing authorization token in request headers");
+    log.warn("[🚫]Missing authorization token in request headers");
     return res.status(401).json({ success: false, message: "Missing authorization token" });
   }
 
@@ -171,16 +168,15 @@ async function HandleGetOrderDetailsByJwt(req, res) {
     const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" }); 
     id = decoded.orderId;
   } catch (error) {
-    log.warn("Invalid authorization token");
+    log.warn("[🚫]Invalid authorization token");
     return res.status(401).json({success:false,  message: "Invalid authorization token" });
   }
 
   if (!id) {
-    log.warn("Missing id in request parameters");
-    log.warn(`Decoded JWT token does not contain orderId: ${JSON.stringify(jwt.decode(token))}`);
+    log.warn("[🚫]Missing id in request parameters");
     id = req.params.id; // fallback to URL parameter if not in token
     if (!id) {
-      log.warn("Missing orderId in both JWT token and URL parameters");
+      log.warn("[🚫]Missing orderId in both JWT token and URL parameters");
       return res.status(400).json({ success: false, message: "Missing orderId" });
     }
   }
@@ -188,7 +184,7 @@ async function HandleGetOrderDetailsByJwt(req, res) {
   try {
     const order = await getOrderById(id);
     if (!order) {
-      log.warn(`Order with ID ${id} not found`);
+      log.warn(`[📦❌]Order with ID ${id} not found`);
       return res.status(404).json({ message: "Order not found" });
     }
 
@@ -197,8 +193,7 @@ async function HandleGetOrderDetailsByJwt(req, res) {
       data: order,
     });
   } catch (error) {
-    log.err("Error handling get order details request: ");
-    console.log(error);
+    log.err(`[❌]Error handling get order details request: ${error.message}`);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -207,18 +202,18 @@ async function HandleGetOrderDetailsByJwt(req, res) {
 }
 
 async function HandleUpdateOrderStatus(req, res) {
-  log.debug("Handling update order status request");
+  log.debug("[⏳📦]Handling update order status request");
   const {id, status, customerId, data, business } = req.body;
 
   if (!id || !status) {
-    log.warn("Missing id or status in request");
+    log.warn("[🚫]Missing id or status in request");
     return res.status(400).json({ message: "Missing id or status" });
   }
 
   try {
     const isUpdated = await updateOrderStatus(id, status);
     if (!isUpdated) {
-      log.warn(`Failed to update order status for order ID: ${id}`);
+      log.warn(`[❌]Failed to update order status for order ID: ${id}`);
       return res.status(500).json({ message: "Failed to update order status" });
     }
 
@@ -227,16 +222,16 @@ async function HandleUpdateOrderStatus(req, res) {
 
     const send = await sendOrderStatusToCustomer(customerId, id, status, itemImage, icon);
     if(!send){
-      log.warn(`Failed to send order status update to customer for order ID: ${id}`);
+      log.warn(`[❌]Failed to send order status update to customer for order ID: ${id}`);
     }
-    log.debug(`Order status updated and customer notified for order ID: ${id}`);
+    log.debug(`[⏳📦]Order status updated and customer notified for order ID: ${id}`);
 
     return res.status(200).json({
       success: true,
       message: "Order status updated successfully",
     });
   } catch (error) {
-    log.err("Error handling update order status request: ", error);
+    log.err(`[❌]Error handling update order status request: ${error.message}`);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -251,11 +246,11 @@ async function HandleGetTodayOrders(req, res) {
   const status = req.params.status;
 
   if (!businessId) {
-    log.warn("Missing businessId in request parameters");
+    log.warn("[🏢]Missing businessId in request parameters");
     return res.status(400).json({ message: "Missing businessId" });
   }
 
-  log.debug(`Handling get today orders request for business ID: ${businessId}`);
+  log.info(`[🏪🗓️]Handling get today orders request for business ID: ${businessId}`);
   try {
     const orders = await getTodayOrdersForBusiness(businessId, status);
     return res.status(200).json({
@@ -263,7 +258,7 @@ async function HandleGetTodayOrders(req, res) {
       data: orders,
     });
   } catch (error) {
-    log.err("Error handling get today orders request: ", error);
+    log.err(`[❌]Error handling get today orders request: ${error.message}`);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -271,4 +266,42 @@ async function HandleGetTodayOrders(req, res) {
   }
 }
 
-export { HandleGetNewOrders, HandleGetOrderDetailsByJwt, HandleUpdateOrderStatus, HandleGetTodayOrders };
+
+async function HandleOrderPaymentSuccess(req, res) {
+  const { orderId, paymentIntentId } = req.params;
+  const io = getIO();
+  log.debug(`[💸✅]Handling order payment success for order ID: ${orderId} and paymentIntentId: ${paymentIntentId}`);
+
+  if (!orderId || !paymentIntentId) {
+    log.warn("[❌]Missing orderId or paymentIntentId in request parameters");
+    return res.status(400).json({ message: "Missing orderId or paymentIntentId" });
+  }
+
+  log.debug(`[⏳📦]Handling order payment success for order ID: ${orderId} and paymentIntentId: ${paymentIntentId}`);
+
+  await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,[orderStatus.PREPARING, orderId]);
+  const order = await getOrderById(orderId);
+  if(!order){
+    log.warn(`[❌]Order with ID ${orderId} not found after payment success`);
+    return res.status(404).json({ message: "Order not found" });
+  }
+  const businessId = order?.businessId;
+  io.to(`business:${businessId}`).emit("new_order", order, (response) => {
+    log.debug(`sending order to business room: ${businessId}`);
+    if (response?.success) {
+      log.info(`[socket ✅📦] Order confirmed for business with uid: ${businessId}`);
+    } else {
+      log.warn(`[socket ⚠️📤] Failed to send order to business with uid: ${businessId}`);
+    }
+  });
+
+  log.info(`💾 Saved order and emitted to business room: ${businessId} successfully`);
+
+  return res.status(200).json({
+    success: true,
+    message: "Order payment processed and business notified successfully",
+    data: order,
+  });
+}
+
+export { HandleGetNewOrders, HandleGetOrderDetailsByJwt, HandleUpdateOrderStatus, HandleGetTodayOrders, HandleOrderPaymentSuccess };
