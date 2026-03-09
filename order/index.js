@@ -127,6 +127,7 @@ export async function getOrderById(orderId) {
       o.businessId AS orderBusinessId,
       o.customerId AS customerId,
       o.data,
+      0.paymentIntentId AS paymentIntentId,
       o.status,
       o.createdAt,
       o.updatedAt,
