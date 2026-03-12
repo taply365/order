@@ -2,6 +2,7 @@ import { pool, RunQuery } from "../db/db.js";
 import log from "minhluanlu-color-log";
 import { getIO } from "../socketIO/socket.js";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 dotenv.config();
 import { orderStatus } from "../config.js";
 import { 

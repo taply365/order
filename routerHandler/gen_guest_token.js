@@ -1,6 +1,6 @@
 import log from "minhluanlu-color-log";
 import jwt from "jsonwebtoken";
-
+import dotenv from "dotenv";
 dotenv.config();
 
 

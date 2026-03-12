@@ -3,6 +3,7 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import log from "minhluanlu-color-log";
 import { config } from "../config.js";
+import dotenv from "dotenv";
 dotenv.config();
 import {emitEvent} from "./events.js";
 
