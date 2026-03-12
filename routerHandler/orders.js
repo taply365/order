@@ -134,7 +134,7 @@ const HandleGetNewOrders = async (req, res) => {
 
     const token = jwt.sign(
         { orderId: orderDetails.id, guestId: guestId, isBusiness: false},
-        jwtConfig.secret,
+        process.env.SECRET_KEY,
         { expiresIn: jwtConfig.expiresIn }
     );
 
@@ -172,7 +172,7 @@ async function HandleGetOrderDetailsByJwt(req, res) {
 
   let id;
   try {
-    const decoded = jwt.verify(token, jwtConfig.secret, { algorithm: "HS256" }); 
+    const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" }); 
     id = decoded.orderId;
   } catch (error) {
     log.warn("[🚫]Invalid authorization token");

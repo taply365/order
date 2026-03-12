@@ -44,7 +44,7 @@ export default function createSocketServer(app) {
       const { token } = socket.handshake.auth || {};
       if (!token) return next(new Error("missing auth"));
       
-      const decoded = jwt.verify(token, jwtConfig.secret, { algorithm: "HS256" }); // same key you sign with
+      const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" }); // same key you sign with
       socket.user = decoded; // attach user info for later use
       
       if(socket?.user?.businessId != undefined && socket?.user?.businessId != null){ 
