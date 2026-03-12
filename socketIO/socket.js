@@ -2,8 +2,9 @@ import http from "http";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import log from "minhluanlu-color-log";
-import { config } from "../config.js";
+import { config , jwtConfig} from "../config.js";
 import {emitEvent} from "./events.js";
+
 
 
 let ioInstance = null;
@@ -42,8 +43,8 @@ export default function createSocketServer(app) {
     try {
       const { token } = socket.handshake.auth || {};
       if (!token) return next(new Error("missing auth"));
-
-      const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" }); // same key you sign with
+      
+      const decoded = jwt.verify(token, jwtConfig.secret, { algorithm: jwtConfig.algorithm }); // same key you sign with
       socket.user = decoded; // attach user info for later use
       
       if(socket?.user?.businessId != undefined && socket?.user?.businessId != null){ 

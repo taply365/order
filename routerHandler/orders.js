@@ -1,7 +1,8 @@
 import { pool, RunQuery } from "../db/db.js";
 import log from "minhluanlu-color-log";
-import { getIO, getLastSocket } from "../socketIO/socket.js";
+import { getIO } from "../socketIO/socket.js";
 import jwt from "jsonwebtoken";
+import { jwtConfig } from "../config.js";
 import { orderStatus } from "../config.js";
 import { 
   checkBusinessFeatureByName, 
@@ -25,6 +26,7 @@ const HandleGetNewOrders = async (req, res) => {
     const  { guestId } = await getJwtTokenData(req);
 
     if (!guestId) {
+      console.log(guestId)
       log.warn("[⏳]Unauthorized request: Missing or invalid JWT token");
       return res.status(401).json({ message: "Unauthorized: Missing or invalid token" });
     }
@@ -132,8 +134,8 @@ const HandleGetNewOrders = async (req, res) => {
 
     const token = jwt.sign(
         { orderId: orderDetails.id, guestId: guestId, isBusiness: false},
-        process.env.SECRET_KEY,
-        { expiresIn: "45m" }
+        jwtConfig.secret,
+        { expiresIn: jwtConfig.expiresIn }
     );
 
     return res.status(200).json({
@@ -170,7 +172,7 @@ async function HandleGetOrderDetailsByJwt(req, res) {
 
   let id;
   try {
-    const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" }); 
+    const decoded = jwt.verify(token, jwtConfig.secret, { algorithm: jwtConfig.algorithm }); 
     id = decoded.orderId;
   } catch (error) {
     log.warn("[🚫]Invalid authorization token");

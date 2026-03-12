@@ -1,5 +1,6 @@
 import log from "minhluanlu-color-log";
 import jwt from "jsonwebtoken";
+import { jwtConfig } from "../config.js";
 
 
 async function genGuestToken(req, res) {
@@ -16,8 +17,8 @@ async function genGuestToken(req, res) {
 
         const token = jwt.sign(
             { guestId: guestId , isBusiness: false},
-            process.env.SECRET_KEY,
-            { expiresIn: "45m" }
+            jwtConfig.secret,
+            { expiresIn: jwtConfig.expiresIn }
         );
 
         log.debug(`🔑✅ Guest token generated successfully.`);
