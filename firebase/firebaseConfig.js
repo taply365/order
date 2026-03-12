@@ -23,30 +23,36 @@ admin.initializeApp({
 
 
 export async function pushNotification(data) {
-  const message = {
-    token: data.token,
-    notification: {
-      title: data.title || "Order Update",
-      body: data.body || "This is a web push notification",
-    },
-    webpush: {
+  try{
+    const message = {
+      token: data.token,
       notification: {
-        icon: data.icon,
-        badge: data.badge,
-        image: data.image
+        title: data.title || "Order Update",
+        body: data.body || "This is a web push notification",
       },
-      fcmOptions: {
-        link: data.link 
+      webpush: {
+        notification: {
+          icon: data.icon,
+          badge: data.badge,
+          image: data.image
+        },
+        fcmOptions: {
+          link: data.link 
+        },
+        data: {
+          link: data.link
+        },
       },
-      data: {
-        link: data.link
-      },
-    },
-  };
+    };
 
-  const response = await admin.messaging().send(message);
-  console.log("Successfully sent message:", response);
-  return response;
+    const response = await admin.messaging().send(message);
+    console.log("Successfully sent message:", response);
+    return response;
+  }
+  catch(err){
+    console.error("Error sending message:", err);
+    return null;
+  }
 }
 
 export default pushNotification;
