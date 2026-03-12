@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken";
 import log from "minhluanlu-color-log";
-import { jwtConfig } from "../config.js";
 
 
 export async function getJwtTokenData(req){
@@ -11,7 +10,7 @@ export async function getJwtTokenData(req){
     }
 
     try {
-        const decoded = jwt.verify(token, jwtConfig.secret, { algorithm: jwtConfig.algorithm });
+        const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" });
         return decoded;
     } catch (error) {
         log.warn("Invalid authorization token");

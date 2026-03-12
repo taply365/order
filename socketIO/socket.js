@@ -2,7 +2,8 @@ import http from "http";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import log from "minhluanlu-color-log";
-import { config , jwtConfig} from "../config.js";
+import { config } from "../config.js";
+dotenv.config();
 import {emitEvent} from "./events.js";
 
 

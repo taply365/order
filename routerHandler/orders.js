@@ -2,7 +2,7 @@ import { pool, RunQuery } from "../db/db.js";
 import log from "minhluanlu-color-log";
 import { getIO } from "../socketIO/socket.js";
 import jwt from "jsonwebtoken";
-import { jwtConfig } from "../config.js";
+dotenv.config();
 import { orderStatus } from "../config.js";
 import { 
   checkBusinessFeatureByName, 
@@ -135,7 +135,7 @@ const HandleGetNewOrders = async (req, res) => {
     const token = jwt.sign(
         { orderId: orderDetails.id, guestId: guestId, isBusiness: false},
         process.env.SECRET_KEY,
-        { expiresIn: jwtConfig.expiresIn }
+        { expiresIn: "24h" }
     );
 
     return res.status(200).json({
@@ -180,7 +180,6 @@ async function HandleGetOrderDetailsByJwt(req, res) {
   }
 
   if (!id) {
-    log.warn("[🚫]Missing id in request parameters");
     id = req.params.id; // fallback to URL parameter if not in token
     if (!id) {
       log.warn("[🚫]Missing orderId in both JWT token and URL parameters");
