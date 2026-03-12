@@ -172,7 +172,7 @@ async function HandleGetOrderDetailsByJwt(req, res) {
 
   let id;
   try {
-    const decoded = jwt.verify(token, jwtConfig.secret, { algorithm: jwtConfig.algorithm }); 
+    const decoded = jwt.verify(token, jwtConfig.secret, { algorithm: "HS256" }); 
     id = decoded.orderId;
   } catch (error) {
     log.warn("[🚫]Invalid authorization token");
