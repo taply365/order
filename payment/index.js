@@ -19,7 +19,7 @@ export async function HandleCreatePayment(order) {
         }
     }
     catch(error){
-        log.error(`[💳❌]Error occurred while initiating payment for order ID: ${order.id}`, error);
+        log.err(`[💳❌]Error occurred while initiating payment for order ID: ${order.id}`, error);
         return false;
     }
 
