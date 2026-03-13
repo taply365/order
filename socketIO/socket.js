@@ -7,6 +7,8 @@ import dotenv from "dotenv";
 dotenv.config();
 import {emitEvent} from "./events.js";
 
+import { origins } from "../config.js";
+
 
 
 let ioInstance = null;
@@ -31,8 +33,8 @@ export default function createSocketServer(app) {
   const io = new Server(server, {
     path: "/socket.io",
     cors: {
-      origin: ["http://localhost:5173", "https://tryonapp.tech", "https://dev.tryonapp.tech", "https://www.tryonapp.tech"], //  origin: ["https://yourdomain.com"], // only your site
-      methods: ["GET", "POST"],
+      origin: origins, //  origin: ["https://yourdomain.com"], // only your site
+      methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
       allowedHeaders: "*",
       credentials: true,
     },

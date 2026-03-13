@@ -3,7 +3,12 @@ export const config = {
   SERVER_PORT: Number(process.env.SERVER_PORT) || 1268,
 };
 
-
+export const origins = [
+  "http://localhost:5173",
+  "https://tryonapp.tech",
+  "https://dev.tryonapp.tech",
+  "https://www.tryonapp.tech"
+]
 
 export const orderStatus = {
     PENDING: "PENDING",

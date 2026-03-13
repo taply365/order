@@ -9,11 +9,10 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage:storage
 })
-
+router.get('/gen-guest-token', controller.genGuestToken);
 // get //
 router.get("/order/:id", controller.HandleGetOrderDetailsByJwt);
 router.get("/business/:id/orders/status/:status/today", controller.HandleGetTodayOrders);
-router.get('/gen-guest-token', controller.genGuestToken);
 router.get("/business/:uid/open-hours", controller.HandleCheckBusinessOpenHours);
 router.get("/order/payment/intent/:paymentIntentId", controller.HandleGetPaymentByPaymentIntentId);
 
