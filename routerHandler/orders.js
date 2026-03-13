@@ -15,7 +15,7 @@ import {
 } from "../order/index.js";
 import { sendOrderStatusToCustomer } from "../order/customer.js";
 import { getJwtTokenData } from "../auth/index.js";
-import { HandleCreatePayment } from "../payment/index.js";
+import { HandleCreatePayment, checkTooSmallAmount } from "../payment/index.js";
 
 
 const HandleGetNewOrders = async (req, res) => {
@@ -84,6 +84,14 @@ const HandleGetNewOrders = async (req, res) => {
     }
 
     const totalPrice = calculateTotalPrice(orders);
+    if(checkTooSmallAmount(totalPrice, businessCurrency)){
+      log.warn(`[💳⚠️] Total order amount ${totalPrice} ${businessCurrency} is too small for processing`);
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        message: `Total order amount is too small for processing. Minimum is 0.50 USD/EUR or 2.50 DKK.`,
+      });
+    }
 
     // save order to database
     const [insertResult] = await connection.query(

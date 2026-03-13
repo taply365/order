@@ -3,7 +3,39 @@ import http from "../http/http.js";
 import log from "minhluanlu-color-log";
 
 
+export function checkTooSmallAmount(amount, currency) {
+    const currencyMap = {
+        usd: "usd",
+        dollar: "usd",
 
+        eur: "eur",
+        euro: "eur",
+
+        dkk: "dkk",
+        kr: "dkk"
+    };
+
+    const minimums = {
+        usd: 50,   // $0.50
+        eur: 50,   // €0.50
+        dkk: 250   // 2.50 kr
+    };
+
+    const cur = currencyMap[currency?.toLowerCase()];
+    const min = minimums[cur];
+
+    if (!min) {
+        log.warn(`[💳⚠️] Unsupported currency: ${currency}`);
+        return false;
+    }
+
+    if (amount < min) {
+        log.warn(`[💳⚠️] Amount ${amount} ${cur} is too small (minimum ${min})`);
+        return false;
+    }
+
+    return true;
+}
 
 export async function HandleCreatePayment(order) {
     try{
