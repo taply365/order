@@ -4,6 +4,7 @@ import log from "minhluanlu-color-log";
 
 
 export function checkTooSmallAmount(amount, currency) {
+    return true; // Disable minimum amount check for now
     const currencyMap = {
         usd: "usd",
         dollar: "usd",
