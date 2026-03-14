@@ -4,7 +4,7 @@ import log from "minhluanlu-color-log";
 
 
 export function checkTooSmallAmount(amount, currency) {
-    return true; // Disable minimum amount check for now
+    return false; // Disable minimum amount check for now
     const currencyMap = {
         usd: "usd",
         dollar: "usd",
@@ -27,15 +27,15 @@ export function checkTooSmallAmount(amount, currency) {
 
     if (!min) {
         log.warn(`[💳⚠️] Unsupported currency: ${currency}`);
-        return false;
+        return true;
     }
 
     if (amount < min) {
         log.warn(`[💳⚠️] Amount ${amount} ${cur} is too small (minimum ${min})`);
-        return false;
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 export async function HandleCreatePayment(order) {
