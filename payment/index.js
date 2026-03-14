@@ -39,6 +39,11 @@ export function checkTooSmallAmount(amount, currency) {
 
 export async function HandleCreatePayment(order) {
     try{
+       let price = order?.totalPrice
+        if (typeof price === "string") {
+            price = parseFloat(price)
+            order.totalPrice = price;
+        }
         log.debug(`[💳➕]Initiating payment for order ID: ${order.id}`);
         const res = await http.post(`/payment/create-intent/order/${order.id}`, order);
         if(res.data.success){
