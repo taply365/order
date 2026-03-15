@@ -11,14 +11,14 @@ export function checkTooSmallAmount(amount, currency) {
         eur: "eur",
         euro: "eur",
 
-        dkk: "dkk",
+        dkk: "kr",
         kr: "dkk"
     };
 
     const minimums = {
-        usd: 50,   // $0.50
-        eur: 50,   // €0.50
-        dkk: 250   // 2.50 kr
+        usd: 0.5,   // $0.50
+        eur: 0.5,   // €0.50
+        dkk: 2.5   // 2.50 kr
     };
 
     const cur = currencyMap[currency?.toLowerCase()];
