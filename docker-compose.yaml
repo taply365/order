@@ -1,0 +1,8 @@
+services:
+  node-app:
+    image: minh/api:latest
+    ports:
+      - "${SERVER_PORT}:1268"
+      - "${SOCKET_PORT}:1269"
+    env_file:
+      - .env

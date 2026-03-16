@@ -7,7 +7,10 @@ export const origins = [
   "http://localhost:5173",
   "https://tryonapp.tech",
   "https://dev.tryonapp.tech",
-  "https://www.tryonapp.tech"
+  "https://www.tryonapp.tech",
+  "https://taply.dk",
+  "https://www.taply.dk",
+  "https://dev.taply.dk",
 ]
 
 export const orderStatus = {
