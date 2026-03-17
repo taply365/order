@@ -31,7 +31,7 @@ export default function createSocketServer(app) {
   const server = http.createServer(app);
 
   const io = new Server(server, {
-    path: "/socket.io",
+    path: "/order-socket/socket.io",
     cors: {
       origin: origins, //  origin: ["https://yourdomain.com"], // only your site
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
