@@ -5,7 +5,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const http = axios.create({
-  baseURL: process.env.API_SERVER,
+  baseURL: `${process.env.API_SERVER}/api-server`,
+  withCredentials: true,
 });
 
 http.interceptors.request.use((config) => {
