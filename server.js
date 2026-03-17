@@ -20,9 +20,14 @@ app.use(cookieParser());
 
 // important for cookies from frontend
 app.use(cors({
-  origin: origins,
-  credentials: true,
-  methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"]
+    origin: [
+        "http://localhost:5173",
+        "https://taply.dk",
+        "https://www.taply.dk",
+        "https://dev.taply.dk",
+    ],
+    credentials: true,
+    methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"]
 }));
 
 app.get('/connection', (req, res) => {
