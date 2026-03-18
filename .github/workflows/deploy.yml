@@ -16,7 +16,6 @@ jobs:
           host: ${{ secrets.SERVER_HOST_INSTANCE_1 }}
           username: ${{ secrets.SERVER_USER_INSTANCE_1 }}
           key: ${{ secrets.SERVER_SSH_KEY_INSTANCE_1 }}
-          debug: true
           script: |
             /root/deploy/order-deploy.ssh
 
@@ -26,6 +25,5 @@ jobs:
           host: ${{ secrets.SERVER_HOST_INSTANCE_2 }}
           username: ${{ secrets.SERVER_USER_INSTANCE_2 }}
           key: ${{ secrets.SERVER_SSH_KEY_INSTANCE_2 }}
-          debug: true
           script: |
             /root/deploy/order-deploy.ssh
