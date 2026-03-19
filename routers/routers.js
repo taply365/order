@@ -18,6 +18,7 @@ router.get("/order/payment/intent/:paymentIntentId", controller.HandleGetPayment
 
 // post //
 router.post("/new-order", controller.HandleGetNewOrders);
+router.post("/checkout", controller.HandleCheckOut);
 
 
 // put //

@@ -16,6 +16,7 @@ import {
 import { sendOrderStatusToCustomer } from "../order/customer.js";
 import { getJwtTokenData } from "../auth/index.js";
 import { HandleCreatePayment, checkTooSmallAmount } from "../payment/index.js";
+import { pickupTimeCalculation } from "../order/calculation.js";
 
 
 const HandleGetNewOrders = async (req, res) => {
@@ -93,10 +94,13 @@ const HandleGetNewOrders = async (req, res) => {
       });
     }
 
-    // save order to database
+    // calculate pickup time
+    const pickupTime = pickupTimeCalculation(orders);
+
+    // Save order to database
     const [insertResult] = await connection.query(
-      "INSERT INTO orders (businessId, customerId, status, data, currency, totalPrice) VALUES (?, ?, ?, ?, ?, ?)",
-      [businessId, guestId, orderStatus.PENDING, JSON.stringify(orders), businessCurrency, totalPrice]
+      "INSERT INTO orders (businessId, customerId, status, data, currency, totalPrice, pickupAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [businessId, guestId, orderStatus.PREPARING, JSON.stringify(orders), businessCurrency, totalPrice, pickupTime]
     );
 
     if (!insertResult?.insertId) {
