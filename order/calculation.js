@@ -11,22 +11,22 @@ export const pickupTimeCalculation = async () => {
 export const Calculation = async () => {
   const now = roundToMinute(new Date());
 
-  const latestPreparingPickupAt = await getLatestPreparingPickupAt();
+  const latestPickupAtToday = await getLatestPickupAtToday();
 
-  // no preparing orders yet
-  if (!latestPreparingPickupAt) {
+  // no order for today yet
+  if (!latestPickupAtToday) {
     return new Date(now.getTime() + basePrepMinutes * 60000);
   }
 
-  const latestPickupAt = roundToMinute(new Date(latestPreparingPickupAt));
-  const countInLatestSlot = await countPreparingOrdersByPickupAt(latestPickupAt);
+  const latestPickupAt = roundToMinute(new Date(latestPickupAtToday));
+  const countInSameSlot = await countOrdersByPickupAt(latestPickupAtToday);
 
-  // if latest slot still has room, use same slot
-  if (countInLatestSlot < maxOrdersPerSlot) {
+  // if same pickup slot still has room, use it
+  if (countInSameSlot < maxOrdersPerSlot) {
     return latestPickupAt;
   }
 
-  // latest slot is full, move to next slot
+  // otherwise move to next slot
   return new Date(latestPickupAt.getTime() + spacingMinutes * 60000);
 };
 
@@ -36,12 +36,12 @@ function roundToMinute(date) {
   return d;
 }
 
-async function getLatestPreparingPickupAt() {
+async function getLatestPickupAtToday() {
   try {
     const rows = await RunQuery(
       `SELECT pickupAt
        FROM orders
-       WHERE status != 'CANCELLED'
+       WHERE DATE(pickupAt) = CURDATE()
        ORDER BY pickupAt DESC
        LIMIT 1`,
       []
@@ -49,24 +49,35 @@ async function getLatestPreparingPickupAt() {
 
     return rows?.[0]?.pickupAt || null;
   } catch (error) {
-    console.error("Error fetching latest preparing pickupAt:", error);
+    console.error("Error fetching latest pickupAt for today:", error);
     return null;
   }
 }
 
-async function countPreparingOrdersByPickupAt(pickupAt) {
+async function countOrdersByPickupAt(pickupAt) {
   try {
     const rows = await RunQuery(
       `SELECT COUNT(*) AS total
        FROM orders
-       WHERE status != 'CANCELLED'
-       AND pickupAt = ?`,
+       WHERE pickupAt = ?`,
       [pickupAt]
     );
 
-    return rows?.[0]?.total || 0;
+    return Number(rows?.[0]?.total || 0);
   } catch (error) {
-    console.error("Error counting preparing orders by pickupAt:", error);
+    console.error("Error counting orders by pickupAt:", error);
     return 0;
   }
 }
+
+
+/* Look at latest pickupAt today
+
+Count how many orders already have that exact time
+
+Then:
+
+Situation	Result
+No orders today	now + 15 min
+Slot has < 2 orders	reuse same pickupAt
+Slot already has 2 orders	pickupAt + 15 min */
