@@ -3,6 +3,7 @@ import { RunQuery } from "../db/db.js";
 const maxOrdersPerSlot = 2;
 const spacingMinutes = 15;
 const basePrepMinutes = 15;
+const sameSlotBufferMinutes = 10;
 
 export const pickupTimeCalculation = async () => {
   return await Calculation();
@@ -21,10 +22,10 @@ export const Calculation = async () => {
   const latestPickupAt = roundToMinute(new Date(latestPickupAtToday));
   const countInSameSlot = await countOrdersByPickupAt(latestPickupAtToday);
 
-  // if same pickup slot still has room, use it
+  // if same pickup slot still has room, use it + 10 min buffer
   if (countInSameSlot < maxOrdersPerSlot) {
-    return latestPickupAt;
-  }
+  return new Date(latestPickupAt.getTime() + sameSlotBufferMinutes * 60000);
+}
 
   // otherwise move to next slot
   return new Date(latestPickupAt.getTime() + spacingMinutes * 60000);
