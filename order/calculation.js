@@ -1,4 +1,4 @@
 export const pickupTimeCalculation = (order) => {
-  const prepMinutes = order?.length * 1; // example logic
+  const prepMinutes = order?.length * 5; // example logic
   return new Date(Date.now() + prepMinutes * 60000);
 };
