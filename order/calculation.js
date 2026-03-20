@@ -41,7 +41,7 @@ async function getLatestPreparingPickupAt() {
     const rows = await RunQuery(
       `SELECT pickupAt
        FROM orders
-       WHERE status = 'PREPARING'
+       WHERE status != 'CANCELLED'
        ORDER BY pickupAt DESC
        LIMIT 1`,
       []
@@ -59,7 +59,7 @@ async function countPreparingOrdersByPickupAt(pickupAt) {
     const rows = await RunQuery(
       `SELECT COUNT(*) AS total
        FROM orders
-       WHERE status = 'PREPARING'
+       WHERE status != 'CANCELLED'
        AND pickupAt = ?`,
       [pickupAt]
     );
