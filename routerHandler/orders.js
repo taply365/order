@@ -95,7 +95,7 @@ const HandleGetNewOrders = async (req, res) => {
     }
 
     // calculate pickup time
-    const pickupTime = await pickupTimeCalculation(orders);
+    const pickupTime = await pickupTimeCalculation(businessId);
 
     // Save order to database
     const [insertResult] = await connection.query(
