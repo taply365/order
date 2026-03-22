@@ -1,58 +1,34 @@
 import { RunQuery } from "../db/db.js";
 
-export const pickupTimeCalculation = async (businessId) => {
-  const settings = await getPickupSettings(businessId);
-  return await calculatePickupTime(businessId, settings);
+const maxOrdersPerSlot = 2;
+const spacingMinutes = 15;
+const basePrepMinutes = 15;
+const sameSlotBufferMinutes = 10;
+
+export const pickupTimeCalculation = async () => {
+  return await Calculation();
 };
 
-const getPickupSettings = async (businessId) => {
-  try {
-    const rows = await RunQuery(
-      `SELECT * FROM pickupSettings WHERE businessId = ? LIMIT 1`,
-      [businessId]
-    );
-
-    if (rows.length > 0) {
-      const settings = rows[0];
-      return {
-        maxOrdersPerSlot: Number(settings.maxOrdersPerSlot) || 5,
-        spacingMinutes: Number(settings.spacingMinutes) || 15,
-        basePrepMinutes: Number(settings.basePrepMinutes) || 15,
-        sameSlotBufferMinutes: Number(settings.sameSlotBufferMinutes) || 10,
-      };
-    }
-  } catch (error) {
-    console.error("Error fetching pickup settings:", error);
-  }
-
-  return {
-    maxOrdersPerSlot: 5,
-    spacingMinutes: 15,
-    basePrepMinutes: 15,
-    sameSlotBufferMinutes: 10,
-  };
-};
-
-const calculatePickupTime = async (businessId, settings) => {
+export const Calculation = async () => {
   const now = roundToMinute(new Date());
 
-  const latestPickupAtToday = await getLatestPickupAtToday(businessId);
+  const latestPickupAtToday = await getLatestPickupAtToday();
 
   // no order for today yet
   if (!latestPickupAtToday) {
-    return new Date(now.getTime() + settings.basePrepMinutes * 60000);
+    return new Date(now.getTime() + basePrepMinutes * 60000);
   }
 
   const latestPickupAt = roundToMinute(new Date(latestPickupAtToday));
-  const countInSameSlot = await countOrdersByPickupAt(businessId, latestPickupAtToday);
+  const countInSameSlot = await countOrdersByPickupAt(latestPickupAtToday);
 
-  // if latest pickup time still has room, add a small kitchen buffer
-  if (countInSameSlot < settings.maxOrdersPerSlot) {
-    return new Date(latestPickupAt.getTime() + settings.sameSlotBufferMinutes * 60000);
-  }
+  // if same pickup slot still has room, use it + 10 min buffer
+  if (countInSameSlot < maxOrdersPerSlot) {
+  return new Date(latestPickupAt.getTime() + sameSlotBufferMinutes * 60000);
+}
 
   // otherwise move to next slot
-  return new Date(latestPickupAt.getTime() + settings.spacingMinutes * 60000);
+  return new Date(latestPickupAt.getTime() + spacingMinutes * 60000);
 };
 
 function roundToMinute(date) {
@@ -61,16 +37,15 @@ function roundToMinute(date) {
   return d;
 }
 
-async function getLatestPickupAtToday(businessId) {
+async function getLatestPickupAtToday() {
   try {
     const rows = await RunQuery(
       `SELECT pickupAt
        FROM orders
-       WHERE businessId = ?
-         AND DATE(pickupAt) = CURDATE()
+       WHERE DATE(pickupAt) = CURDATE()
        ORDER BY pickupAt DESC
        LIMIT 1`,
-      [businessId]
+      []
     );
 
     return rows?.[0]?.pickupAt || null;
@@ -80,14 +55,13 @@ async function getLatestPickupAtToday(businessId) {
   }
 }
 
-async function countOrdersByPickupAt(businessId, pickupAt) {
+async function countOrdersByPickupAt(pickupAt) {
   try {
     const rows = await RunQuery(
       `SELECT COUNT(*) AS total
        FROM orders
-       WHERE businessId = ?
-         AND pickupAt = ?`,
-      [businessId, pickupAt]
+       WHERE pickupAt = ?`,
+      [pickupAt]
     );
 
     return Number(rows?.[0]?.total || 0);
@@ -98,14 +72,13 @@ async function countOrdersByPickupAt(businessId, pickupAt) {
 }
 
 
-/* Look at latest pickupAt today for this business
+/* Look at latest pickupAt today
 
 Count how many orders already have that exact time
 
 Then:
 
-Situation                                Result
-No orders today                          now + basePrepMinutes
-Latest pickup time has room              latestPickupAt + sameSlotBufferMinutes
-Latest pickup time is full               latestPickupAt + spacingMinutes
-*/
+Situation	Result
+No orders today	now + 15 min
+Slot has < 2 orders	reuse same pickupAt
+Slot already has 2 orders	pickupAt + 15 min */
