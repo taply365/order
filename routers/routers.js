@@ -9,6 +9,7 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage:storage
 })
+router.get("/production/authenticate", controller.HandleAuth);
 router.get('/gen-guest-token', controller.genGuestToken);
 // get //
 router.get("/order/:id", controller.HandleGetOrderDetailsByJwt);
