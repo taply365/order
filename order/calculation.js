@@ -1,42 +1,76 @@
 import { RunQuery } from "../db/db.js";
 
-const maxOrdersPerSlot = 2;
-const spacingMinutes = 15;
-const basePrepMinutes = 15;
-const sameSlotBufferMinutes = 10;
+// Configuration
+const maxOrdersPerSlot = 5;       // Maximum number of orders allowed in the same pickup slot
+const spacingMinutes = 15;        // Time gap between slots when moving to next slot
+const basePrepMinutes = 15;       // Minimum preparation time from "now"
+const sameSlotBufferMinutes = 5; // Buffer between orders inside the same slot
 
 export const pickupTimeCalculation = async () => {
   return await Calculation();
 };
 
+
+
 export const Calculation = async () => {
+  // Get current time rounded to minute (remove seconds/milliseconds)
   const now = roundToMinute(new Date());
 
+  // Calculate minimum ready time: now + prep time
+  const minReadyTime = new Date(
+    now.getTime() + basePrepMinutes * 60000 // convert minutes → milliseconds
+  );
+
+  // Get latest pickup time for today from DB
   const latestPickupAtToday = await getLatestPickupAtToday();
 
-  // no order for today yet
+  // CASE 1: No orders today → just return minimum ready time
   if (!latestPickupAtToday) {
-    return new Date(now.getTime() + basePrepMinutes * 60000);
+    return minReadyTime;
   }
 
+  // Convert DB value to Date and normalize it
   const latestPickupAt = roundToMinute(new Date(latestPickupAtToday));
+
+  // Count how many orders already use this exact pickup time
   const countInSameSlot = await countOrdersByPickupAt(latestPickupAtToday);
 
-  // if same pickup slot still has room, use it + 10 min buffer
-  if (countInSameSlot < maxOrdersPerSlot) {
-  return new Date(latestPickupAt.getTime() + sameSlotBufferMinutes * 60000);
-}
+  // Decide base time:
+  // - If latestPickupAt is in the future → use it
+  // - If it's in the past → use minReadyTime instead
+  const baseTime =
+    latestPickupAt > minReadyTime ? latestPickupAt : minReadyTime;
 
-  // otherwise move to next slot
-  return new Date(latestPickupAt.getTime() + spacingMinutes * 60000);
+  // CASE 2: Slot still has capacity
+  if (countInSameSlot < maxOrdersPerSlot) {
+    return new Date(
+      baseTime.getTime() +
+        countInSameSlot * sameSlotBufferMinutes * 60000
+      // Explanation:
+      // countInSameSlot → how many orders already in this slot
+      // sameSlotBufferMinutes → spacing between each order
+      // Example:
+      // 0 orders → +0 min
+      // 1 order → +10 min
+      // 2 orders → +20 min
+    );
+  }
+
+  // CASE 3: Slot is full → move to next slot
+  return new Date(
+    baseTime.getTime() + spacingMinutes * 60000
+    // Add fixed spacing to jump to next available slot
+  );
 };
 
+// Helper: remove seconds and milliseconds for clean comparison
 function roundToMinute(date) {
   const d = new Date(date);
-  d.setSeconds(0, 0);
+  d.setSeconds(0, 0); // zero out seconds + milliseconds
   return d;
 }
 
+// Get latest pickupAt for today
 async function getLatestPickupAtToday() {
   try {
     const rows = await RunQuery(
@@ -55,6 +89,7 @@ async function getLatestPickupAtToday() {
   }
 }
 
+// Count how many orders share the same pickupAt
 async function countOrdersByPickupAt(pickupAt) {
   try {
     const rows = await RunQuery(
@@ -64,21 +99,35 @@ async function countOrdersByPickupAt(pickupAt) {
       [pickupAt]
     );
 
-    return Number(rows?.[0]?.total || 0);
+    return Number(rows?.[0]?.total || 0); // ensure number type
   } catch (error) {
     console.error("Error counting orders by pickupAt:", error);
     return 0;
   }
 }
 
+/*
+======================== FULL FLOW ========================
 
-/* Look at latest pickupAt today
+1. Get current time → now
+2. Add prep time → minReadyTime
 
-Count how many orders already have that exact time
+3. Get latest pickupAt today
 
-Then:
+4. If no orders:
+   → return minReadyTime
 
-Situation	Result
-No orders today	now + 15 min
-Slot has < 2 orders	reuse same pickupAt
-Slot already has 2 orders	pickupAt + 15 min */
+5. If orders exist:
+   → count how many share same pickupAt
+
+6. Decide baseTime:
+   → max(latestPickupAt, minReadyTime)
+
+7. If slot NOT full:
+   → spread orders using sameSlotBufferMinutes
+
+8. If slot FULL:
+   → move to next slot using spacingMinutes
+
+===========================================================
+*/
