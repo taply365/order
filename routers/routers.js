@@ -16,6 +16,7 @@ router.get("/order/:id", controller.HandleGetOrderDetailsByJwt);
 router.get("/business/:id/orders/status/:status/today", controller.HandleGetTodayOrders);
 router.get("/business/:uid/open-hours", controller.HandleCheckBusinessOpenHours);
 router.get("/order/payment/intent/:paymentIntentId", controller.HandleGetPaymentByPaymentIntentId);
+router.get("/pickup-time/user-business/:id", controller.HandleCheckOrderPickupTime);
 
 // post //
 router.post("/new-order", controller.HandleGetNewOrders);

@@ -1,133 +1,115 @@
 import { RunQuery } from "../db/db.js";
 
-// Configuration
-const maxOrdersPerSlot = 5;       // Maximum number of orders allowed in the same pickup slot
-const spacingMinutes = 15;        // Time gap between slots when moving to next slot
-const basePrepMinutes = 15;       // Minimum preparation time from "now"
-const sameSlotBufferMinutes = 5; // Buffer between orders inside the same slot
-
-export const pickupTimeCalculation = async () => {
-  return await Calculation();
-};
-
-
-
-export const Calculation = async () => {
-  // Get current time rounded to minute (remove seconds/milliseconds)
-  const now = roundToMinute(new Date());
-
-  // Calculate minimum ready time: now + prep time
-  const minReadyTime = new Date(
-    now.getTime() + basePrepMinutes * 60000 // convert minutes → milliseconds
-  );
-
-  // Get latest pickup time for today from DB
-  const latestPickupAtToday = await getLatestPickupAtToday();
-
-  // CASE 1: No orders today → just return minimum ready time
-  if (!latestPickupAtToday) {
-    return minReadyTime;
-  }
-
-  // Convert DB value to Date and normalize it
-  const latestPickupAt = roundToMinute(new Date(latestPickupAtToday));
-
-  // Count how many orders already use this exact pickup time
-  const countInSameSlot = await countOrdersByPickupAt(latestPickupAtToday);
-
-  // Decide base time:
-  // - If latestPickupAt is in the future → use it
-  // - If it's in the past → use minReadyTime instead
-  const baseTime =
-    latestPickupAt > minReadyTime ? latestPickupAt : minReadyTime;
-
-  // CASE 2: Slot still has capacity
-  if (countInSameSlot < maxOrdersPerSlot) {
-    return new Date(
-      baseTime.getTime() +
-        countInSameSlot * sameSlotBufferMinutes * 60000
-      // Explanation:
-      // countInSameSlot → how many orders already in this slot
-      // sameSlotBufferMinutes → spacing between each order
-      // Example:
-      // 0 orders → +0 min
-      // 1 order → +10 min
-      // 2 orders → +20 min
-    );
-  }
-
-  // CASE 3: Slot is full → move to next slot
-  return new Date(
-    baseTime.getTime() + spacingMinutes * 60000
-    // Add fixed spacing to jump to next available slot
-  );
-};
-
-// Helper: remove seconds and milliseconds for clean comparison
-function roundToMinute(date) {
-  const d = new Date(date);
-  d.setSeconds(0, 0); // zero out seconds + milliseconds
-  return d;
+function ceilToSlot(date, slotMinutes) {
+  const ms = slotMinutes * 60 * 1000;
+  return new Date(Math.ceil(date.getTime() / ms) * ms);
 }
 
-// Get latest pickupAt for today
-async function getLatestPickupAtToday() {
-  try {
+function formatTime(date) {
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function getNextSlot(date, slotMinutes) {
+  return new Date(date.getTime() + slotMinutes * 60 * 1000);
+}
+
+async function getKitchenCapacity(businessId) {
+  try{
     const rows = await RunQuery(
-      `SELECT pickupAt
-       FROM orders
-       WHERE DATE(pickupAt) = CURDATE()
-       ORDER BY pickupAt DESC
-       LIMIT 1`,
-      []
+      `
+      SELECT maxOrdersPerSlot, slotMinutes, prepMinutes, slotLimit
+      FROM kitchenCapacity
+      WHERE businessId = ?
+      `,
+      [businessId]
     );
-
-    return rows?.[0]?.pickupAt || null;
-  } catch (error) {
-    console.error("Error fetching latest pickupAt for today:", error);
-    return null;
+    if(rows.length > 0){
+      const { maxOrdersPerSlot, slotMinutes, prepMinutes, slotLimit } = rows[0];
+      return {
+        maxOrdersPerSlot,
+        slotMinutes,
+        prepMinutes,
+        slotLimit
+      };
+    }
+  }
+  catch(error){
+    return {
+      maxOrdersPerSlot: 2,
+      slotMinutes: 15,
+      prepMinutes: 15,
+      slotLimit: 5
+    };
   }
 }
 
-// Count how many orders share the same pickupAt
-async function countOrdersByPickupAt(pickupAt) {
-  try {
-    const rows = await RunQuery(
-      `SELECT COUNT(*) AS total
-       FROM orders
-       WHERE pickupAt = ?`,
-      [pickupAt]
+export const pickupTimeCalculation = async (businessId) => {
+  const kitchenCapacity = await getKitchenCapacity(businessId);
+  const { maxOrdersPerSlot, slotMinutes, prepMinutes, slotLimit } = kitchenCapacity;
+
+  const now = new Date();
+  const earliestReady = new Date(now.getTime() + prepMinutes * 60 * 1000);
+  const roundedEarliest = ceilToSlot(earliestReady, slotMinutes);
+
+  let pickupTime = roundedEarliest;
+
+  // Find first available slot starting from roundedEarliest
+  while (true) {
+    const countRows = await RunQuery(
+      `
+      SELECT COUNT(*) AS count
+      FROM orders
+      WHERE pickupAt = ?
+      `,
+      [pickupTime.toISOString()]
     );
 
-    return Number(rows?.[0]?.total || 0); // ensure number type
-  } catch (error) {
-    console.error("Error counting orders by pickupAt:", error);
-    return 0;
+    const count = Number(countRows[0]?.count || 0);
+
+    if (count < maxOrdersPerSlot) {
+      break;
+    }
+
+    pickupTime = getNextSlot(pickupTime, slotMinutes);
   }
-}
 
-/*
-======================== FULL FLOW ========================
+  // Build availableSlots starting from booked pickupTime
+  const availableSlots = [];
 
-1. Get current time → now
-2. Add prep time → minReadyTime
+  for (let i = 0; i < slotLimit; i++) {
+    const slotTime = new Date(
+      pickupTime.getTime() + i * slotMinutes * 60 * 1000
+    );
 
-3. Get latest pickupAt today
+    const countRows = await RunQuery(
+      `
+      SELECT COUNT(*) AS count
+      FROM orders
+      WHERE pickupAt = ?
+      `,
+      [slotTime.toISOString()]
+    );
 
-4. If no orders:
-   → return minReadyTime
+    const currentOrders = Number(countRows[0]?.count || 0);
 
-5. If orders exist:
-   → count how many share same pickupAt
+    availableSlots.push({
+      slotTime,
+      label: formatTime(slotTime),
+      currentOrders,
+      remainingCapacity: maxOrdersPerSlot - currentOrders,
+      isAvailable: currentOrders < maxOrdersPerSlot,
+    });
+  }
 
-6. Decide baseTime:
-   → max(latestPickupAt, minReadyTime)
-
-7. If slot NOT full:
-   → spread orders using sameSlotBufferMinutes
-
-8. If slot FULL:
-   → move to next slot using spacingMinutes
-
-===========================================================
-*/
+  return {
+    orderTime: now,
+    earliestReady,
+    pickupTime,
+    pickupLabel: formatTime(pickupTime),
+    availableSlots,
+  };
+};

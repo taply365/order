@@ -17,6 +17,7 @@ import { sendOrderStatusToCustomer } from "../order/customer.js";
 import { getJwtTokenData } from "../auth/index.js";
 import { HandleCreatePayment, checkTooSmallAmount } from "../payment/index.js";
 import { pickupTimeCalculation } from "../order/calculation.js";
+import { formatMySQLDateTime } from "../utils/mysqlDateFormmet.js";
 
 
 const HandleGetNewOrders = async (req, res) => {
@@ -24,7 +25,7 @@ const HandleGetNewOrders = async (req, res) => {
   const connection = await pool.getConnection();
 
   try {
-    const { receiverId, orders } = req.body;
+    let { receiverId, orders, orderPickupTime } = req.body;
     const  { guestId } = await getJwtTokenData(req);
 
     if (!guestId) {
@@ -95,12 +96,21 @@ const HandleGetNewOrders = async (req, res) => {
     }
 
     // calculate pickup time
-    const pickupTime = await pickupTimeCalculation(orders);
+    if(!orderPickupTime || orderPickupTime === null){
+      log.debug("Calculating pickup time because orderPickupTime is null or not provided");
+      const calculationResult = await pickupTimeCalculation(businessId);
+      const { pickupTime } = calculationResult;
+      orderPickupTime = pickupTime;
+    }
+    else{
+      log.debug(`Received orderPickupTime from request: ${orderPickupTime}`);
+      orderPickupTime = formatMySQLDateTime(orderPickupTime);
+    }
 
     // Save order to database
     const [insertResult] = await connection.query(
       "INSERT INTO orders (businessId, customerId, status, data, currency, totalPrice, pickupAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [businessId, guestId, orderStatus.PREPARING, JSON.stringify(orders), businessCurrency, totalPrice, pickupTime]
+      [businessId, guestId, orderStatus.PREPARING, JSON.stringify(orders), businessCurrency, totalPrice, orderPickupTime]
     );
 
     if (!insertResult?.insertId) {
@@ -324,4 +334,48 @@ async function HandleOrderPaymentSuccess(req, res) {
   });
 }
 
-export { HandleGetNewOrders, HandleGetOrderDetailsByJwt, HandleUpdateOrderStatus, HandleGetTodayOrders, HandleOrderPaymentSuccess };
+
+async function HandleCheckOrderPickupTime(req, res) {
+  try{
+    console.log("Handling check order pickup time request");
+    const userBusinessId = req.params.id;
+    if(!userBusinessId){
+      log.warn("[🏢]Missing businessId in request parameters");
+      return res.status(400).json({ message: "Missing businessId" });
+    }
+
+    const getBusinessId = await RunQuery(`SELECT id FROM businesses WHERE uid = ? LIMIT 1`, [userBusinessId]);
+    if(!getBusinessId || getBusinessId.length === 0){
+      log.warn(`[🏢]No business found with uid: ${userBusinessId}`);
+      return res.status(404).json({ message: "Business not found" });
+    }
+
+    console.log(`Calculating pickup time for business with id: ${getBusinessId[0].id}`);
+
+    log.info(`[🏪⏰]Calculating pickup time for business with uid: ${getBusinessId[0].id}`);
+    const result = await pickupTimeCalculation(getBusinessId[0].id);
+    console.log(result);
+    return res.status(200).json({
+      success: true,
+      message: "Pickup time calculated successfully",
+      data: result,
+    });
+  }
+  catch(error){
+    log.err(`[❌]Error handling check order pickup time request: ${error.message}`);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+}
+
+
+export { 
+  HandleGetNewOrders, 
+  HandleGetOrderDetailsByJwt, 
+  HandleUpdateOrderStatus, 
+  HandleGetTodayOrders, 
+  HandleOrderPaymentSuccess, 
+  HandleCheckOrderPickupTime 
+};
