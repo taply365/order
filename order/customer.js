@@ -20,7 +20,14 @@ export async function sendOrderStatusToCustomer(customerId, orderId, status, ima
                 image: image
                 //badge: "https://th.bing.com/th/id/OIP.yN8LzEPl81YvvqO2ZW-91AHaE8?w=243&h=180&c=7&r=0&o=7&pid=1.7&rm=3",
             };
-            //if(status === "READY") pushNotification(notificationData);
+            if(status === "READY") {
+                try{
+                    await pushNotification(notificationData);
+                }
+                catch(err){
+                    log.err("Error sending push notification in sendOrderStatusToCustomer:", err);
+                }
+            }
         }
         catch(err){
             log.err("Error sending push notification in sendOrderStatusToCustomer:", err);
