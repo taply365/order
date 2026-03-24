@@ -4,6 +4,7 @@ import { HandleCheckBusinessOpenHours } from "../routerHandler/businesses.js";
 import { HandleGetPaymentByPaymentIntentId } from "../routerHandler/payments.js";
 import { HandleAuth } from "../routerHandler/auth.js";
 import { HandleGetOrdersForKitchen } from "../routerHandler/kitchen.js";
+import { HandleSendReceiptToEmail } from "../routerHandler/receipts.js";
 
 import { HandleCheckOut } from "../routerHandler/checkOut.js";
 
@@ -19,7 +20,9 @@ const Controller = {
    HandleCheckOut,
    HandleAuth,
    HandleCheckOrderPickupTime,
-   HandleGetOrdersForKitchen
+   HandleGetOrdersForKitchen,
+   HandleSendReceiptToEmail
+
 }
 
 

@@ -22,7 +22,7 @@ router.get("/pickup-time/user-business/:id", controller.HandleCheckOrderPickupTi
 // post //
 router.post("/new-order", controller.HandleGetNewOrders);
 router.post("/checkout", controller.HandleCheckOut);
-
+router.post("/order/receipt/send-to-mail", controller.HandleSendReceiptToEmail);
 
 // put //
 router.put("/order/status", controller.HandleUpdateOrderStatus);
