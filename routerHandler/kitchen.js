@@ -6,7 +6,13 @@ async function HandleGetOrdersForKitchen(req, res) {
     try {
         const status = req.params.status;
         const businessId = req.params.id;
-        const query = 'SELECT * FROM orders WHERE status = ? AND businessId = ?';
+        const query = `
+            SELECT * 
+            FROM orders 
+            WHERE status = ? 
+            AND businessId = ? 
+            AND DATE(createdAt) = CURDATE();
+        `;
         const result = await RunQuery(query, [status, businessId]);
         res.status(200).json({
             success: true,
