@@ -30,7 +30,7 @@ async function HandleSendReceiptToEmail(req, res) {
     });
 
     log.debug(`Receipt email sent to ${order.email} for order #${order.id}`);
-    return res.json({ success: true });
+    return res.status(200).json({ success: true, message: "Receipt email sent successfully" });
   } catch (err) {
     console.error("Error in HandleSendReceiptToEmail:", err);
     return res.status(500).json({ 

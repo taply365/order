@@ -3,173 +3,65 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Receipt Modal</title>
+  <title>Receipt</title>
   <style>
     * { box-sizing: border-box; min-width: 0; }
     html, body { margin: 0; padding: 0; }
     body {
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      background: #f3f4f6;
-      overflow-x: hidden;
-    }
-
-    .backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-      overflow-x: hidden;
-      backdrop-filter: blur(6px);
-      background: rgba(15, 23, 42, 0.08);
-      animation: fadeIn 0.16s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .modal {
-      width: auto;
-      max-width: 100%;
-      max-height: 94vh;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      overflow-x: hidden;
-      border-radius: 16px;
-      border: 1px solid #e5e7eb;
-      background: #ffffff;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.12);
-      animation: popIn 180ms ease-out;
-    }
-
-    @keyframes popIn {
-      from {
-        opacity: .9;
-        transform: translateY(6px) scale(.98);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    .topBar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 18px 20px;
-      border-bottom: 1px solid #e5e7eb;
-      background: #ffffff;
-    }
-
-    .titleWrap {
-      display: grid;
-      gap: 2px;
-      min-width: 0;
-    }
-
-    .modalTitle {
-      color: #374151;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .orderIdBig {
-      font-size: 30px;
-      font-weight: 800;
-      color: #2563eb;
-      word-break: break-word;
-    }
-
-    .modalSub {
-      color: #6b7280;
-      font-size: 12px;
-    }
-
-    .viewer {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding: 24px;
-    }
-
-    .paperFrame {
-      width: min(420px, 100%);
-      max-width: 100%;
-      margin: 0 auto;
-      overflow: hidden;
-      border-radius: 4px;
-      border: 1px solid #e5e7eb;
-      background: #ffffff;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    }
-
-    .paper {
-      position: relative;
-      overflow: hidden;
+      background:
+        radial-gradient(circle at top, #f5f5f4 0, #e7e5e4 45%, #d6d3d1 100%);
+      padding: 24px 12px;
+      color: #111;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
     }
 
     .receipt {
-      background: #f9fafb;
-      color: #111827;
-      padding: 18px 16px;
+      position: relative;
+      width: min(360px, 100%);
+      margin: 0 auto;
+      background: #fffefc;
+      color: #111;
+      padding: 18px 14px 20px;
+      border: 1px solid #d6d3d1;
+      box-shadow:
+        0 2px 6px rgba(0,0,0,0.06),
+        0 18px 32px rgba(0,0,0,0.10);
       font-family:
+        "Courier New",
+        Courier,
         ui-monospace,
         SFMono-Regular,
         Menlo,
         Monaco,
         Consolas,
-        "Courier New",
         monospace;
       font-size: 12px;
-      line-height: 1.4;
-      transform-origin: top center;
-      overflow-x: hidden;
-      word-wrap: break-word;
-      overflow-wrap: anywhere;
+      line-height: 1.35;
+      overflow: hidden;
     }
 
-    .ready .receipt {
-      transform: translateY(0);
-    }
-
-    .printing .receipt {
-      animation: feedOut 1.1s cubic-bezier(.2,.9,.2,1) forwards;
-    }
-
-    @keyframes feedOut {
-      0% { transform: translateY(-48%) scaleY(.97); }
-      55% { transform: translateY(-8%) scaleY(1); }
-      100% { transform: translateY(0); }
-    }
-
-    .scanline {
+    .receipt::before,
+    .receipt::after {
+      content: "";
       position: absolute;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0;
-      background: linear-gradient(
-        to bottom,
-        rgba(0,0,0,0),
-        rgba(0,0,0,0.08),
-        rgba(0,0,0,0)
-      );
-      transform: translateY(-120%);
+      left: 0;
+      width: 100%;
+      height: 10px;
+      background:
+        radial-gradient(circle at 10px 0, transparent 10px, #fffefc 10.5px) repeat-x;
+      background-size: 20px 10px;
+      z-index: 2;
     }
 
-    .printing .scanline {
-      opacity: 1;
-      animation: scan 1.05s linear infinite;
+    .receipt::before {
+      top: -1px;
+      transform: rotate(180deg);
+      border-bottom: 1px solid #e7e5e4;
     }
 
-    @keyframes scan {
-      from { transform: translateY(-120%); }
-      to { transform: translateY(120%); }
+    .receipt::after {
+      bottom: -1px;
+      border-top: 1px solid #e7e5e4;
     }
 
     .receiptHeader {
@@ -179,55 +71,60 @@
 
     .logo {
       display: block;
-      max-width: 110px;
-      max-height: 38px;
+      max-width: 92px;
+      max-height: 34px;
       object-fit: contain;
-      margin: 0 auto 8px;
+      margin: 0 auto 6px;
+      filter: grayscale(100%) contrast(115%);
     }
 
     .brand {
-      font-size: 14px;
-      font-weight: 800;
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 2px;
     }
 
     .subtle {
-      color: #6b7280;
+      color: #57534e;
       font-size: 11px;
+      line-height: 1.3;
     }
 
     .hr {
-      height: 1px;
+      height: 0;
+      border-top: 1px dashed #78716c;
       margin: 10px 0;
-      background: #d1d5db;
+      opacity: 0.9;
     }
 
     .hrDashed {
-      height: 1px;
+      height: 0;
+      border-top: 1px dashed #78716c;
       margin: 10px 0;
-      background: repeating-linear-gradient(
-        90deg,
-        #9ca3af 0 8px,
-        transparent 8px 12px
-      );
+      opacity: 0.9;
     }
 
     .metaGrid {
       display: grid;
-      gap: 6px;
+      gap: 5px;
     }
 
     .metaRow {
       display: flex;
       justify-content: space-between;
-      gap: 8px;
+      align-items: flex-start;
+      gap: 10px;
     }
 
     .metaKey {
-      color: #6b7280;
+      color: #57534e;
+      white-space: nowrap;
     }
 
     .metaVal {
-      color: #111827;
+      color: #111;
       text-align: right;
       word-break: break-word;
     }
@@ -235,24 +132,27 @@
     .itemsHeader,
     .itemRow {
       display: grid;
-      grid-template-columns: minmax(0,1fr) 48px 82px 92px;
-      gap: 8px;
+      grid-template-columns: minmax(0,1fr) 34px 68px 76px;
+      gap: 6px;
       width: 100%;
+      align-items: start;
     }
 
     .itemsHeader {
-      font-weight: 800;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding-bottom: 2px;
     }
 
     .items {
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
 
     .itemName {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      white-space: normal;
+      word-break: break-word;
+      text-transform: uppercase;
     }
 
     .right {
@@ -264,274 +164,222 @@
     }
 
     .empty {
-      padding: 10px 0;
-      color: #6b7280;
+      padding: 8px 0;
+      color: #57534e;
+      text-align: center;
     }
 
     .totalRow {
       display: flex;
       justify-content: space-between;
       gap: 8px;
-      font-weight: 800;
+      font-weight: 700;
       margin-top: 2px;
+      padding-top: 2px;
     }
 
-    .totalLabel {
-      font-size: 13px;
-    }
-
+    .totalLabel,
     .totalValue {
       font-size: 15px;
-      text-align: right;
+      letter-spacing: 0.6px;
     }
 
     .notes {
-      margin-top: 8px;
+      margin-top: 4px;
       word-break: break-word;
     }
 
     .notesTitle {
       margin-bottom: 4px;
-      font-weight: 800;
+      font-weight: 700;
+      letter-spacing: 0.5px;
     }
 
     .footer {
       margin-top: 14px;
+      padding-top: 4px;
     }
 
     .center {
       text-align: center;
-      font-weight: 800;
+      font-weight: 700;
+      letter-spacing: 0.8px;
     }
 
     .centerSmall {
-      margin-top: 4px;
+      margin-top: 3px;
       text-align: center;
-      color: #6b7280;
-      font-size: 11px;
+      color: #57534e;
+      font-size: 10px;
     }
 
     .statusBadge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 84px;
+      display: inline-block;
+      padding: 0;
+      border-radius: 0;
+      min-width: unset;
       max-width: 100%;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: .5px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      background: transparent !important;
+      color: #111 !important;
+      border: none !important;
     }
 
-    .countdown {
-      letter-spacing: 0.5px;
-      font-family: monospace;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-      border-radius: 8px;
-      padding: 6px 12px;
-      margin: 0;
-    }
+    .statusDefault::before { content: "[ "; }
+    .statusDefault::after { content: " ]"; }
 
-    .normal {
-      background: #eef2ff;
-      color: #3730a3;
-    }
+    .statusPENDING::before,
+    .statusCONFIRMED::before,
+    .statusPREPARING::before,
+    .statusREADY::before,
+    .statusCOMPLETED::before,
+    .statusCANCELLED::before,
+    .statusREJECTED::before { content: "[ "; }
 
-    .warning {
-      background: #fff7ed;
-      color: #c2410c;
-    }
+    .statusPENDING::after,
+    .statusCONFIRMED::after,
+    .statusPREPARING::after,
+    .statusREADY::after,
+    .statusCOMPLETED::after,
+    .statusCANCELLED::after,
+    .statusREJECTED::after { content: " ]"; }
 
-    .urgent {
-      background: #bbf7d0;
-      color: #166534;
-      animation: pulse 1s infinite;
-    }
-
-    .statusDefault { background: #e5e7eb; color: #111827; }
-    .statusPENDING { background: #fde68a; color: #78350f; }
-    .statusCONFIRMED { background: #ddd6fe; color: #5b21b6; }
-    .statusPREPARING { background: #bfdbfe; color: #1d4ed8; }
-    .statusREADY { background: #bbf7d0; color: #166534; }
-    .statusCOMPLETED { background: #a7f3d0; color: #065f46; }
-    .statusCANCELLED,
-    .statusREJECTED { background: #fecaca; color: #991b1b; }
-
-    @media (max-width: 600px) {
-      body { overflow-x: hidden; }
-
-      .backdrop { padding: 0; }
-
-      .modal {
-        width: 100%;
-        max-width: 100%;
-        height: 100vh;
-        max-height: 100vh;
-        border-radius: 0;
-      }
-
-      .topBar { padding: 16px 14px; }
-
-      .orderIdBig { font-size: 24px; }
-
-      .viewer { padding: 12px; }
-
-      .paperFrame {
-        width: 100%;
-        max-width: 100%;
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
       }
 
       .receipt {
-        padding: 14px 12px;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        box-shadow: none;
+        border: none;
+      }
+    }
+
+    @media (max-width: 420px) {
+      body { padding: 10px; }
+
+      .receipt {
+        width: 100%;
+        padding: 16px 12px 18px;
         font-size: 11px;
       }
 
       .itemsHeader,
       .itemRow {
-        grid-template-columns: minmax(0,1fr) 38px 58px 68px;
+        grid-template-columns: minmax(0,1fr) 28px 58px 64px;
         gap: 4px;
       }
 
-      .statusBadge { min-width: unset; }
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.05); opacity: 0.85; }
-      100% { transform: scale(1); opacity: 1; }
+      .brand { font-size: 15px; }
+      .totalLabel, .totalValue { font-size: 14px; }
     }
   </style>
 </head>
 <body>
-  <div class="backdrop" role="dialog" aria-modal="true" aria-label="Receipt Modal">
-    <div class="modal">
-      <div class="topBar">
-        <div class="titleWrap">
-          <div class="modalTitle">Receipt</div>
-          <div class="orderIdBig" id="orderIdBig">#—</div>
-          <div class="modalSub" id="modalSub">Receipt details and summary.</div>
-        </div>
-        <div id="countdownWrap" style="display:none;">
-          <p id="countdown" class="countdown normal"></p>
-        </div>
+  <div class="receipt" aria-label="Receipt">
+    <header class="receiptHeader">
+      <img id="logo" class="logo" src="" alt="Business logo" />
+      <div class="brand" id="brand"></div>
+      <div class="subtle" id="businessAddress"></div>
+      <div class="subtle" id="businessPhone"></div>
+    </header>
+
+    <div class="hr"></div>
+
+    <section class="metaGrid">
+      <div class="metaRow">
+        <span class="metaKey">ORDER</span>
+        <span class="metaVal mono" id="metaOrder"></span>
       </div>
 
-      <div class="viewer">
-        <div id="paperFrame" class="paperFrame ready">
-          <div class="paperTop"></div>
-
-          <div class="paper">
-            <div class="scanline"></div>
-
-            <div class="receipt" aria-label="Receipt">
-              <header class="receiptHeader">
-                <img id="logo" class="logo" src="" alt="Business logo" />
-                <div class="brand" id="brand"></div>
-                <div class="subtle" id="businessAddress"></div>
-                <div class="subtle" id="businessPhone"></div>
-              </header>
-
-              <div class="hr"></div>
-
-              <section class="metaGrid">
-                <div class="metaRow">
-                  <span class="metaKey">ORDER</span>
-                  <span class="metaVal mono" id="metaOrder"></span>
-                </div>
-
-                <div class="metaRow">
-                  <span class="metaKey">BUSINESS ID</span>
-                  <span class="metaVal mono" id="metaBusinessId"></span>
-                </div>
-
-                <div class="metaRow">
-                  <span class="metaKey">STATUS</span>
-                  <span class="metaVal statusBadge statusDefault" id="metaStatus"></span>
-                </div>
-
-                <div class="metaRow">
-                  <span class="metaKey">CREATED</span>
-                  <span class="metaVal" id="metaCreated"></span>
-                </div>
-
-                <div class="metaRow">
-                  <span class="metaKey">UPDATED</span>
-                  <span class="metaVal" id="metaUpdated"></span>
-                </div>
-              </section>
-
-              <div class="hrDashed"></div>
-
-              <section>
-                <div class="itemsHeader">
-                  <span>ITEM</span>
-                  <span class="right">QTY</span>
-                  <span class="right">PRICE</span>
-                  <span class="right">TOTAL</span>
-                </div>
-
-                <div class="hr"></div>
-
-                <div class="items" id="items"></div>
-                <div class="empty" id="emptyItems" style="display:none;">No line items available</div>
-              </section>
-
-              <div class="hrDashed"></div>
-
-              <div class="totalRow">
-                <span class="totalLabel">TOTAL</span>
-                <span class="totalValue mono" id="totalValue"></span>
-              </div>
-
-              <div class="metaRow">
-                <span class="metaKey">Tax / VAT (25%)</span>
-                <span class="metaVal" id="taxValue"></span>
-              </div>
-
-              <div class="hrDashed"></div>
-
-              <section class="metaGrid">
-                <div class="itemsHeader">
-                  <span>PAYMENT</span>
-                </div>
-
-                <div class="metaRow">
-                  <span class="metaKey">PaymentId</span>
-                  <span class="metaVal" id="paymentId"></span>
-                </div>
-                <div class="metaRow">
-                  <span class="metaKey">CustomerId</span>
-                  <span class="metaVal" id="customerId"></span>
-                </div>
-              </section>
-
-              <div id="notesBlock" style="display:none;">
-                <div class="hr"></div>
-                <section class="notes">
-                  <div class="notesTitle">NOTES</div>
-                  <div class="subtle" id="notes"></div>
-                </section>
-              </div>
-
-              <footer class="footer">
-                <div class="center">Powered by</div>
-                <div class="centerSmall">Taply</div>
-              </footer>
-            </div>
-          </div>
-
-          <div class="paperBottom"></div>
-        </div>
+      <div class="metaRow">
+        <span class="metaKey">BUSINESS ID</span>
+        <span class="metaVal mono" id="metaBusinessId"></span>
       </div>
+
+      <div class="metaRow">
+        <span class="metaKey">STATUS</span>
+        <span class="metaVal statusBadge statusDefault" id="metaStatus"></span>
+      </div>
+
+      <div class="metaRow">
+        <span class="metaKey">CREATED</span>
+        <span class="metaVal" id="metaCreated"></span>
+      </div>
+
+      <div class="metaRow">
+        <span class="metaKey">UPDATED</span>
+        <span class="metaVal" id="metaUpdated"></span>
+      </div>
+    </section>
+
+    <div class="hrDashed"></div>
+
+    <section>
+      <div class="itemsHeader">
+        <span>ITEM</span>
+        <span class="right">QTY</span>
+        <span class="right">PRICE</span>
+        <span class="right">TOTAL</span>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="items" id="items"></div>
+      <div class="empty" id="emptyItems" style="display:none;">NO LINE ITEMS</div>
+    </section>
+
+    <div class="hrDashed"></div>
+
+    <div class="totalRow">
+      <span class="totalLabel">TOTAL</span>
+      <span class="totalValue mono" id="totalValue"></span>
     </div>
+
+    <div class="metaRow" style="margin-top:6px;">
+      <span class="metaKey">TAX / VAT (25%)</span>
+      <span class="metaVal mono" id="taxValue"></span>
+    </div>
+
+    <div class="hrDashed"></div>
+
+    <section class="metaGrid">
+      <div class="itemsHeader">
+        <span>PAYMENT</span>
+      </div>
+
+      <div class="metaRow">
+        <span class="metaKey">PAYMENT ID</span>
+        <span class="metaVal" id="paymentId"></span>
+      </div>
+      <div class="metaRow">
+        <span class="metaKey">CUSTOMER ID</span>
+        <span class="metaVal" id="customerId"></span>
+      </div>
+    </section>
+
+    <div id="notesBlock" style="display:none;">
+      <div class="hr"></div>
+      <section class="notes">
+        <div class="notesTitle">NOTES</div>
+        <div class="subtle" id="notes"></div>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <div class="center">THANK YOU</div>
+      <div class="centerSmall">Powered by Taply</div>
+    </footer>
   </div>
 
   <script>
     const order = __ORDER_JSON__;
-
-    const autoPrint = true;
-    const printDurationMs = 1400;
 
     function formatMoney(amount, currency = "USD") {
       const value = Number(amount);
@@ -589,14 +437,6 @@
       });
     }
 
-    function formatCountdown(ms) {
-      if (ms == null) return "—";
-      const totalSeconds = Math.floor(ms / 1000);
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-      return `${minutes}:${String(seconds).padStart(2, "0")}`;
-    }
-
     function computeTotal(order, items) {
       if (order?.totalPrice != null && Number.isFinite(Number(order.totalPrice))) {
         return Number(order.totalPrice);
@@ -610,6 +450,15 @@
       document.getElementById(id).textContent = value;
     }
 
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
     function renderReceipt(order) {
       const items = normalizeItems(order);
       const currency = order?.currency ?? order?.data?.currency ?? "Kr";
@@ -621,16 +470,15 @@
       const notes = order?.notes ?? order?.data?.notes ?? "";
       const status = String(order?.status ?? "—").toUpperCase();
 
-      setText("orderIdBig", `#${order?.id ?? "—"}`);
       setText("brand", businessName);
-      setText("businessAddress", `ADR: ${businessAddress}`);
-      setText("businessPhone", `TEL: ${businessPhone}`);
+      setText("businessAddress", businessAddress);
+      setText("businessPhone", businessPhone);
       setText("metaOrder", `#${order?.id ?? "—"}`);
       setText("metaBusinessId", order?.businessId ?? "—");
       setText("metaCreated", formatDate(order?.createdAt));
       setText("metaUpdated", formatDate(order?.updatedAt));
       setText("totalValue", computedTotal == null ? "—" : formatMoney(computedTotal, currency));
-      setText("taxValue", computedTotal == null ? "—" : `${(computedTotal * 0.25).toFixed(2)}${currency}`);
+      setText("taxValue", computedTotal == null ? "—" : formatMoney(computedTotal * 0.25, currency));
       setText("paymentId", order?.paymentIntentId || "—");
 
       const customerId = order?.customerId
@@ -641,8 +489,13 @@
       setText("customerId", customerId);
 
       const logo = document.getElementById("logo");
-      logo.src = order.businessLogo ?? "https://dummyimage.com/110x38/f3f4f6/6b7280.png&text=Logo";
-      logo.alt = `${businessName} logo`;
+      if (order?.businessLogo) {
+        logo.src = order.businessLogo;
+        logo.alt = `${businessName} logo`;
+        logo.style.display = "block";
+      } else {
+        logo.style.display = "none";
+      }
 
       const statusEl = document.getElementById("metaStatus");
       statusEl.textContent = status;
@@ -658,8 +511,8 @@
           const row = document.createElement("div");
           row.className = "itemRow";
           row.innerHTML = `
-            <span class="itemName" title="${escapeHtml(item.name)}">${escapeHtml(
-              `${item.name}${item.subName ? ` - ${item.subName}` : ""}`.toLowerCase()
+            <span class="itemName">${escapeHtml(
+              `${item.name}${item.subName ? ` - ${item.subName}` : ""}`.toUpperCase()
             )}</span>
             <span class="right mono">${item.qty}x</span>
             <span class="right mono">${item.price == null ? "—" : escapeHtml(formatMoney(item.price, currency))}</span>
@@ -680,77 +533,8 @@
       }
     }
 
-    function escapeHtml(str) {
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-    }
-
-    function startPrinting() {
-      if (!autoPrint) return;
-      const paperFrame = document.getElementById("paperFrame");
-      const modalSub = document.getElementById("modalSub");
-      paperFrame.classList.remove("ready");
-      paperFrame.classList.add("printing");
-      modalSub.textContent = "Printing…";
-      setTimeout(() => {
-        paperFrame.classList.remove("printing");
-        paperFrame.classList.add("ready");
-        modalSub.textContent = "Receipt details and summary.";
-      }, printDurationMs);
-    }
-
-    function startCountdown(order) {
-      if (!order?.createdAt || !order?.pickupAt) return;
-      if (String(order?.status).toUpperCase() === "READY") return;
-
-      const wrap = document.getElementById("countdownWrap");
-      const el = document.getElementById("countdown");
-      wrap.style.display = "block";
-
-      const start = new Date(order.createdAt).getTime();
-      const end = new Date(order.pickupAt).getTime();
-
-      function updateCountdown() {
-        const now = Date.now();
-        let timeLeft;
-
-        if (now < start) {
-          timeLeft = end - start;
-        } else if (now >= end) {
-          timeLeft = 0;
-        } else {
-          timeLeft = end - now;
-        }
-
-        el.textContent = timeLeft === 0 && String(order?.status).toUpperCase() === "READY"
-          ? "Expected ready"
-          : ` Ready in: ${formatCountdown(timeLeft)}`;
-
-        el.className = "countdown " + (
-          timeLeft < 60000 ? "urgent" :
-          timeLeft < 300000 ? "warning" :
-          "normal"
-        );
-      }
-
-      updateCountdown();
-      setInterval(updateCountdown, 1000);
-    }
-
     renderReceipt(order);
-    startPrinting();
-    startCountdown(order);
-
-    // To reuse with your own data, replace the `order` object above or set:
-    // window.renderCustomReceipt(yourOrderObject)
-    window.renderCustomReceipt = function(customOrder) {
-      renderReceipt(customOrder);
-      startCountdown(customOrder);
-    };
+    window.renderCustomReceipt = renderReceipt;
   </script>
 </body>
 </html>
