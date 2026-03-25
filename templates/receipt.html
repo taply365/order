@@ -420,8 +420,8 @@
         const qty = Number(item?.qty ?? item?.quantity ?? 1);
         const price = Number(item?.price ?? item?.data?.[0]?.price ?? 0);
         const total =
-          item?.total != null
-            ? Number(item.total)
+          item?.price != null
+            ? Number(item.price) * (item?.qty ?? item?.quantity ?? 1)
             : Number.isFinite(qty) && Number.isFinite(price)
             ? qty * price
             : null;
