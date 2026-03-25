@@ -8,7 +8,7 @@ const APP_EMAIL = process.env.APP_EMAIL;
 const APP_PASSWORD = process.env.APP_PASSWORD
 
 
-async function SendEmail(data) {
+async function SendPdfEmail(data) {
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
@@ -41,5 +41,5 @@ async function SendEmail(data) {
 
 
 export {
-  SendEmail
+  SendPdfEmail
 }
