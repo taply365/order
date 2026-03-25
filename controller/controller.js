@@ -1,4 +1,4 @@
-import { HandleGetNewOrders, HandleGetOrderDetailsByJwt, HandleUpdateOrderStatus, HandleGetTodayOrders, HandleOrderPaymentSuccess, HandleCheckOrderPickupTime } from "../routerHandler/orders.js";
+import { HandleGetNewOrders, HandleGetOrderDetailsByJwt, HandleUpdateOrderStatus, HandleGetTodayOrders, HandleGetOrdersHistory, HandleOrderPaymentSuccess, HandleCheckOrderPickupTime } from "../routerHandler/orders.js";
 import { genGuestToken } from "../routerHandler/gen_guest_token.js";
 import { HandleCheckBusinessOpenHours } from "../routerHandler/businesses.js";
 import { HandleGetPaymentByPaymentIntentId } from "../routerHandler/payments.js";
@@ -13,6 +13,7 @@ const Controller = {
    HandleGetOrderDetailsByJwt,
    HandleUpdateOrderStatus,
    HandleGetTodayOrders,
+   HandleGetOrdersHistory,
    HandleOrderPaymentSuccess,
    genGuestToken,
    HandleCheckBusinessOpenHours,

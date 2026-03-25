@@ -120,3 +120,39 @@ export const pickupTimeCalculation = async (businessId) => {
     availableSlots,
   };
 };
+
+/* 
+maxOrdersPerSlot
+  What it does:
+  Maximum number of orders the kitchen can handle in a single time slot.
+  Example:
+  If maxOrdersPerSlot = 3, only 3 orders can be scheduled at e.g. 18:00.
+  Used for:
+  Checking if a slot is full or still available
+
+slotMinutes
+  What it does:
+  Length of each time slot in minutes.
+
+  Example:
+  If slotMinutes = 15, slots are:
+
+  18:00, 18:15, 18:30, 18:45...
+
+prepMinutes
+  What it does:
+  Minimum preparation time before an order is ready.
+  Example:
+  If now = 17:00 and prepMinutes = 20 → earliest ready = 17:20
+  Used for:
+  Ensuring pickup is not too early
+
+
+slotLimit
+  What it does:
+  Number of future time slots to return as options.
+
+  Example:
+  If slotLimit = 5, you return:
+
+  [18:00, 18:15, 18:30, 18:45, 19:00] */

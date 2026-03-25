@@ -187,3 +187,21 @@ export async function getTodayOrdersForBusiness(businessId, status) {
 }
 
 
+export async function getOrdersHistory(businessId, status) {
+    try {
+        const results = await RunQuery(`
+            SELECT *
+            FROM orders
+            WHERE businessId = ?
+            AND DATE(createdAt) = CURDATE()
+            AND (status = ? OR status = ?)
+            ORDER BY createdAt DESC
+        `, [businessId, status, "CANCELLED"]);
+        return results;
+    }
+    catch (error) {
+        log.err(`[❌]Error fetching today's orders for business: ${error.message}`);
+        throw error;
+    }
+}
+

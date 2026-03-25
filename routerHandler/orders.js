@@ -11,7 +11,8 @@ import {
   getOrderById, 
   updateOrderStatus, 
   checkBusinessOpenHours, 
-  getTodayOrdersForBusiness
+  getTodayOrdersForBusiness,
+  getOrdersHistory,
 } from "../order/index.js";
 import { sendOrderStatusToCustomer } from "../order/customer.js";
 import { getJwtTokenData } from "../auth/index.js";
@@ -296,6 +297,33 @@ async function HandleGetTodayOrders(req, res) {
 }
 
 
+async function HandleGetOrdersHistory(req, res) {
+  try{
+    const businessId = req.params.id;
+    const status = req.params.status;
+
+    if (!businessId) {
+      log.warn("[🏢]Missing businessId in request parameters");
+      return res.status(400).json({ message: "Missing businessId" });
+    }
+
+    log.info(`[🏪🗓️]Handling get orders history request for business ID: ${businessId}`);
+    const orders = await getOrdersHistory(businessId, status);
+    return res.status(200).json({
+      success: true,
+      data: orders,
+    });
+  }
+  catch(error){
+    log.err(`[❌]Error handling get orders history request: ${error.message}`);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+}
+
+
 async function HandleOrderPaymentSuccess(req, res) {
   const { orderId, paymentIntentId } = req.params;
   const io = getIO();
@@ -377,5 +405,6 @@ export {
   HandleUpdateOrderStatus, 
   HandleGetTodayOrders, 
   HandleOrderPaymentSuccess, 
+  HandleGetOrdersHistory,
   HandleCheckOrderPickupTime 
 };
