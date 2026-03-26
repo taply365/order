@@ -324,6 +324,7 @@ async function HandleGetOrdersHistory(req, res) {
 }
 
 
+// order payment success handler - update order status to PAID, update payment status, delete checkout session, emit new order to business room
 async function HandleOrderPaymentSuccess(req, res) {
   const { orderId, paymentIntentId } = req.params;
   const io = getIO();
@@ -336,8 +337,9 @@ async function HandleOrderPaymentSuccess(req, res) {
 
   log.debug(`[⏳📦]Handling order payment success for order ID: ${orderId} and paymentIntentId: ${paymentIntentId}`);
 
-  await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,[orderStatus.PREPARING, orderId]);
+  await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,["PAID", orderId]);
   await RunQuery(`UPDATE payments SET status = ? WHERE paymentIntentId = ?`, ["succeeded", paymentIntentId]);
+  await RunQuery(`DELETE FROM checkoutSessions WHERE paymentIntentId = ? OR orderId = ?`, [paymentIntentId, orderId]);
   const order = await getOrderById(orderId);
   if(!order){
     log.warn(`[❌]Order with ID ${orderId} not found after payment success`);
