@@ -339,33 +339,23 @@ async function HandleOrderPaymentSuccess(req, res) {
 
   await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,["PAID", orderId]);
   await RunQuery(`UPDATE payments SET status = ? WHERE paymentIntentId = ?`, ["succeeded", paymentIntentId]);
-  await RunQuery(`DELETE FROM checkoutSessions WHERE paymentIntentId = ? OR orderId = ?`, [paymentIntentId, orderId]);
   const order = await getOrderById(orderId);
   if(!order){
     log.warn(`[❌]Order with ID ${orderId} not found after payment success`);
     return res.status(404).json({ message: "Order not found" });
   }
-  const businessId = order?.businessId;
-  io.to(`business:${businessId}`).emit("new_order", order, (response) => {
-    log.debug(`sending order to business room: ${businessId}`);
-    if (response?.success) {
-      log.info(`[socket ✅📦] Order confirmed for business with uid: ${businessId}`);
-    } else {
-      log.warn(`[socket ⚠️📤] Failed to send order to business with uid: ${businessId}`);
-    }
-  });
 
+  // send order details to business room with ack to confirm receipt
+  const businessId = order?.businessId;
   io.to(`business:${businessId}`)
   .timeout(5000)
-  .emit(`checkout_session_success_status_${String(order?.id)}`, { success: true }, (err, responses) => {
-    log.debug(`sending checkout session to business room: ${businessId}`);
-
+  .emit("new_order", order, (err, response) => {
+    log.debug(`sending order to business room: ${businessId}`);
     if (err) {
       log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
-      return;
     }
 
-    const confirmed = responses?.some((res) => res?.success);
+      const confirmed = response?.some((res) => res?.success);
 
     if (confirmed) {
       log.info(`[socket ✅📦] Checkout session confirmed for business with uid: ${businessId}`);
@@ -373,6 +363,7 @@ async function HandleOrderPaymentSuccess(req, res) {
       log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
     }
   });
+
 
   log.info(`💾 Saved order and emitted to business room: ${businessId} successfully`);
 
