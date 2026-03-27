@@ -9,9 +9,12 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage:storage
 })
+
+// AUTH //
 router.get("/production/authenticate", controller.HandleAuth);
 router.get('/gen-guest-token', controller.genGuestToken);
-// get //
+
+// GET //
 router.get("/order/:id", controller.HandleGetOrderDetailsByJwt);
 router.get("/business/:id/orders/status/:status/today", controller.HandleGetTodayOrders);
 router.get("/business/:id/orders-history/status/:status/today", controller.HandleGetOrdersHistory);
@@ -20,14 +23,13 @@ router.get("/business/:uid/open-hours", controller.HandleCheckBusinessOpenHours)
 router.get("/order/payment/intent/:paymentIntentId", controller.HandleGetPaymentByPaymentIntentId);
 router.get("/pickup-time/user-business/:id", controller.HandleCheckOrderPickupTime);
 
-// post //
-router.post("/new-order", controller.HandleGetNewOrders);
-router.post("/checkout", controller.HandleCheckOut);
-router.post("/order/receipt/send-to-mail", controller.HandleSendReceiptToEmail);
+// POST //
+router.post("/new-order", controller.HandleGetNewOrders); // New order from online ordring
+router.post("/order/receipt/send-to-mail", controller.HandleSendReceiptToEmail); // send receipt to email after order payment success
 
-// put //
-router.put("/order/status", controller.HandleUpdateOrderStatus);
-router.put("/order/:orderId/payment-success/:paymentIntentId/session/:sessionId", controller.HandleOrderPaymentSuccess);
+// PUT //
+router.put("/order/status", controller.HandleUpdateOrderStatus); // order status update by business
+router.put("/order/:orderId/payment-success/:paymentIntentId/session/:sessionId", controller.HandleOrderPaymentSuccess); // order POS payment success update by business
 
 
 

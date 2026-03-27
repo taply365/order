@@ -6,7 +6,7 @@ import { HandleAuth } from "../routerHandler/auth.js";
 import { HandleGetOrdersForKitchen } from "../routerHandler/kitchen.js";
 import { HandleSendReceiptToEmail } from "../routerHandler/receipts.js";
 
-import { HandleCheckOut } from "../routerHandler/checkOut.js";
+
 
 
 const Controller = {
@@ -19,7 +19,6 @@ const Controller = {
    genGuestToken,
    HandleCheckBusinessOpenHours,
    HandleGetPaymentByPaymentIntentId,
-   HandleCheckOut,
    HandleAuth,
    HandleCheckOrderPickupTime,
    HandleGetOrdersForKitchen,
