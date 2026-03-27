@@ -355,6 +355,25 @@ async function HandleOrderPaymentSuccess(req, res) {
     }
   });
 
+  io.to(`business:${businessId}`)
+  .timeout(5000)
+  .emit(`checkout_session_success_status_${String(order?.id)}`, { success: true }, (err, responses) => {
+    log.debug(`sending checkout session to business room: ${businessId}`);
+
+    if (err) {
+      log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
+      return;
+    }
+
+    const confirmed = responses?.some((res) => res?.success);
+
+    if (confirmed) {
+      log.info(`[socket ✅📦] Checkout session confirmed for business with uid: ${businessId}`);
+    } else {
+      log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
+    }
+  });
+
   log.info(`💾 Saved order and emitted to business room: ${businessId} successfully`);
 
   return res.status(200).json({
