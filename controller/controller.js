@@ -7,7 +7,7 @@ import { HandleGetOrdersForKitchen } from "../routerHandler/kitchen.js";
 import { HandleSendReceiptToEmail } from "../routerHandler/receipts.js";
 
 import { HandleCheckOut } from "../routerHandler/checkOut.js";
-import { handleCheckoutSessionSuccess } from "../routerHandler/checkoutSession.js";
+
 
 const Controller = {
    HandleGetNewOrders,
@@ -24,8 +24,6 @@ const Controller = {
    HandleCheckOrderPickupTime,
    HandleGetOrdersForKitchen,
    HandleSendReceiptToEmail,
-   handleCheckoutSessionSuccess
-
 
 }
 
