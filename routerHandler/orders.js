@@ -337,7 +337,6 @@ async function HandleOrderPaymentSuccess(req, res) {
 
   log.debug(`[⏳📦]Handling order payment success for order ID: ${orderId} and paymentIntentId: ${paymentIntentId}`);
 
-  await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,["PAID", orderId]);
   await RunQuery(`UPDATE payments SET status = ? WHERE paymentIntentId = ?`, ["succeeded", paymentIntentId]);
   const order = await getOrderById(orderId);
   if(!order){
@@ -349,6 +348,7 @@ async function HandleOrderPaymentSuccess(req, res) {
   const businessId = order?.businessId;
 
   if(sessionId === "null" || sessionId === null){
+    await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,["PREPARING", orderId]);
     log.info("This is online ordering payment (not checkout session), emitting new order to business room");
     io.to(`business:${businessId}`)
     .timeout(5000)
@@ -369,6 +369,7 @@ async function HandleOrderPaymentSuccess(req, res) {
   }
   else{
     log.info("This is checkout session payment, emitting checkout session success status to business room");
+    await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,["PAID", orderId]);
     await RunQuery(`DELETE FROM checkoutSessions WHERE id = ? OR businessId = ?`, [sessionId, businessId]);
 
     io.to(`business:${businessId}`)
