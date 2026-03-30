@@ -29,7 +29,8 @@ router.post("/order/receipt/send-to-mail", controller.HandleSendReceiptToEmail);
 
 // PUT //
 router.put("/order/status", controller.HandleUpdateOrderStatus); // order status update by business
-router.put("/order/:orderId/payment-success/:paymentIntentId/session/:sessionId", controller.HandleOrderPaymentSuccess); // order POS payment success update by business
+router.put("/order/:orderId/payment-success/:paymentIntentId", controller.HandleOrderPaymentSuccess); // order POS payment success update by business
+router.put("/order/:orderId/payment-success/:paymentIntentId/session/:sessionId", controller.HandleCheckoutSessionSuccess); // order POS payment success update by business
 
 
 

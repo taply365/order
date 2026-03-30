@@ -326,7 +326,7 @@ async function HandleGetOrdersHistory(req, res) {
 
 // order payment success handler - update order status to PAID, update payment status, delete checkout session, emit new order to business room
 async function HandleOrderPaymentSuccess(req, res) {
-  const { orderId, paymentIntentId, sessionId } = req.params;
+  const { orderId, paymentIntentId } = req.params;
   const io = getIO();
   log.debug(`[💸✅]Handling order payment success for order ID: ${orderId} and paymentIntentId: ${paymentIntentId}`);
 
@@ -347,50 +347,25 @@ async function HandleOrderPaymentSuccess(req, res) {
   // send order details to business room with ack to confirm receipt
   const businessId = order?.businessId;
 
-  if(sessionId === "null" || sessionId === null){
-    await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,["PREPARING", orderId]);
-    log.info("This is online ordering payment (not checkout session), emitting new order to business room");
-    io.to(`business:${businessId}`)
-    .timeout(5000)
-    .emit("new_order", order, (err, response) => {
-      log.debug(`sending order to business room: ${businessId}`);
-      if (err) {
-        log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
-      }
+  await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,["PREPARING", orderId]);
+  log.info("This is online ordering payment (not checkout session), emitting new order to business room");
+  io.to(`business:${businessId}`)
+  .timeout(5000)
+  .emit("new_order", order, (err, responses) => {
+    log.debug(`sending checkout session to business room: ${businessId}`);
 
-        const confirmed = response?.some((res) => res?.success);
+    if (err) {
+    log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
+    }
 
-      if (confirmed) {
-        log.info(`[socket ✅📦] Checkout session confirmed for business with uid: ${businessId}`);
-      } else {
-        log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
-      }
-    });
-  }
-  else{
-    log.info("This is checkout session payment, emitting checkout session success status to business room");
-    await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,["PAID", orderId]);
-    await RunQuery(`DELETE FROM checkoutSessions WHERE id = ? OR businessId = ?`, [sessionId, businessId]);
+    const confirmed = responses?.some((res) => res?.success);
 
-    io.to(`business:${businessId}`)
-    .timeout(5000)
-    .emit(`checkout_session_success_status_${String(order?.id)}`, { success: true }, (err, responses) => {
-        log.debug(`sending checkout session to business room: ${businessId}`);
-
-        if (err) {
-        log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
-        }
-
-        const confirmed = responses?.some((res) => res?.success);
-
-        if (confirmed) {
-        log.info(`[socket ✅📦] Checkout session confirmed for business with uid: ${businessId}`);
-        } else {
-        log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
-        }
-    });
-  }
-
+    if (confirmed) {
+    log.info(`[socket ✅📦] Checkout session confirmed for business with uid: ${businessId}`);
+    } else {
+    log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
+    }
+  });
 
   log.info(`💾 Saved order and emitted to business room: ${businessId} successfully`);
 
