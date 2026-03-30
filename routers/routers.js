@@ -27,6 +27,7 @@ router.get("/pickup-time/user-business/:id", controller.HandleCheckOrderPickupTi
 router.post("/new-order", controller.HandleGetNewOrders); // New order from online ordring
 router.post("/order/receipt/send-to-mail", controller.HandleSendReceiptToEmail); // send receipt to email after order payment success
 
+
 // PUT //
 router.put("/order/status", controller.HandleUpdateOrderStatus); // order status update by business
 router.put("/order/:orderId/payment-success/:paymentIntentId", controller.HandleOrderPaymentSuccess); // order POS payment success update by business

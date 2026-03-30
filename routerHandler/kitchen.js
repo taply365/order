@@ -2,6 +2,7 @@ import { RunQuery } from '../db/db.js';
 import log from "minhluanlu-color-log";
 
 
+
 async function HandleGetOrdersForKitchen(req, res) {
     try {
         const status = req.params.status;
@@ -11,7 +12,9 @@ async function HandleGetOrdersForKitchen(req, res) {
             FROM orders 
             WHERE status = ? 
             AND businessId = ? 
-            AND DATE(createdAt) = CURDATE();
+            AND createdAt >= CURDATE()
+            AND createdAt < CURDATE() + INTERVAL 1 DAY
+            ORDER BY createdAt DESC;
         `;
         const result = await RunQuery(query, [status, businessId]);
         res.status(200).json({
@@ -24,5 +27,6 @@ async function HandleGetOrdersForKitchen(req, res) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 }
+
 
 export { HandleGetOrdersForKitchen };

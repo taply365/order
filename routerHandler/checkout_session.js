@@ -56,8 +56,7 @@ async function HandleCheckoutSessionSuccess(req, res) {
         }
     });
     
-
-
+    
     log.info(`💾 Saved order and emitted to business room: ${businessId} successfully`);
 
     return res.status(200).json({
