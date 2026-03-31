@@ -1,6 +1,6 @@
 import { RunQuery } from '../db/db.js';
 import log from "minhluanlu-color-log";
-
+import { getIO } from "../socketIO/socket.js";
 
 
 async function HandleGetOrdersForKitchen(req, res) {
@@ -8,7 +8,7 @@ async function HandleGetOrdersForKitchen(req, res) {
         const status = req.params.status;
         const businessId = req.params.id;
         const query = `
-            SELECT * 
+                SELECT * 
             FROM orders 
             WHERE status = ? 
             AND businessId = ? 
@@ -29,4 +29,42 @@ async function HandleGetOrdersForKitchen(req, res) {
 }
 
 
-export { HandleGetOrdersForKitchen };
+async function HandleSendTableOrdersForKitchen(req, res) {
+    try {
+        const data = req.body;
+        const businessId = req.params.id;
+        console.log('Received data for sending table orders to kitchen:', data);
+        const io = getIO();
+
+        log.info(`Emitting 'update_tableOrders_list' event to business room: ${businessId} with data:`, {success: true});
+        io.to(`business:${businessId}`)
+        .timeout(5000)
+        .emit("update_tableOrders_list", {success: true}, (err, responses) => {
+            log.debug(`sending checkout session to business room: ${businessId}`);
+
+            if (err) {
+            log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
+            }
+
+            const confirmed = responses?.some((res) => res?.success);
+
+            if (confirmed) {
+            log.info(`[socket ✅📦] Checkout session confirmed for business with uid: ${businessId}`);
+            } else {
+            log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
+            }
+        });
+
+
+        res.status(200).json({
+            success: true,
+            message: `Table orders sent to kitchen successfully`,
+            data: data
+        });
+    }
+    catch(err){
+        log.err('Error fetching kitchen data by date:', err);
+    }
+}
+
+export { HandleGetOrdersForKitchen, HandleSendTableOrdersForKitchen };
