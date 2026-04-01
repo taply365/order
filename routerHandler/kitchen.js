@@ -33,6 +33,7 @@ async function HandleSendTableOrdersForKitchen(req, res) {
     try {
         const data = req.body;
         const businessId = req.params.id;
+        const tableId = req.params.tableId;
         console.log('Received data for sending table orders to kitchen:', data);
         const io = getIO();
 
@@ -55,6 +56,8 @@ async function HandleSendTableOrdersForKitchen(req, res) {
             }
         });
 
+        await RunQuery(`UPDATE tableOrders SET status = "PREPARING" WHERE tableId = ? `, [parseInt(tableId)]);    
+
 
         res.status(200).json({
             success: true,
@@ -63,6 +66,7 @@ async function HandleSendTableOrdersForKitchen(req, res) {
         });
     }
     catch(err){
+        console.log(err)
         log.err('Error fetching kitchen data by date:', err);
     }
 }
