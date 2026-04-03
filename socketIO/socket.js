@@ -33,13 +33,7 @@ export default function createSocketServer(app) {
   const io = new Server(server, {
     path: "/order-socket/socket.io",
     cors: {
-      origin: [
-        "http://localhost:5173",
-        "https://taply.dk",
-        "https://www.taply.dk",
-        "https://dev.taply.dk",
-        "https://www.dev.taply.dk",
-      ], //  origin: ["https://yourdomain.com"], // only your site
+      origin: origins, //  origin: ["https://yourdomain.com"], // only your site
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
       credentials: true,
     },
