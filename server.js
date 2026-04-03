@@ -18,12 +18,34 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(cookieParser());
 
-// important for cookies from frontend
-app.use(cors({
-  origin: origins,
+const normalizedOrigins = origins.map((origin) => origin.trim());
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const currentOrigin = origin.trim();
+    const isAllowedOrigin = normalizedOrigins.includes(currentOrigin)
+      || /^https:\/\/([a-z0-9-]+\.)?taply\.dk$/i.test(currentOrigin)
+      || /^https:\/\/([a-z0-9-]+\.)?dev\.taply\.dk$/i.test(currentOrigin);
+
+    if (isAllowedOrigin) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS blocked for origin: ${currentOrigin}`));
+  },
   credentials: true,
-  methods: [ "GET" , "POST" , "PUT" , "DELETE" , "PATCH" , "OPTIONS" ]
-}));
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
+  optionsSuccessStatus: 204
+};
+
+// important for cookies from frontend
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.get('/connection', (req, res) => {
     res.status(200).json({ message: 'Connection successful' });

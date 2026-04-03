@@ -29,13 +29,31 @@ export function getLastSocket() {
  */
 export default function createSocketServer(app) {
   const server = http.createServer(app);
+  const normalizedOrigins = origins.map((origin) => origin.trim());
+
+  const isAllowedOrigin = (origin) => {
+    if (!origin) {
+      return true;
+    }
+
+    const currentOrigin = origin.trim();
+    return normalizedOrigins.includes(currentOrigin)
+      || /^https:\/\/([a-z0-9-]+\.)?taply\.dk$/i.test(currentOrigin)
+      || /^https:\/\/([a-z0-9-]+\.)?dev\.taply\.dk$/i.test(currentOrigin);
+  };
 
   const io = new Server(server, {
     path: "/order-socket/socket.io",
     cors: {
-      origin: origins, //  origin: ["https://yourdomain.com"], // only your site
-      methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+      origin: (origin, callback) => {
+        callback(null, isAllowedOrigin(origin));
+      },
+      methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
       credentials: true,
+    },
+    allowRequest: (req, callback) => {
+      const requestOrigin = req.headers.origin;
+      callback(null, isAllowedOrigin(requestOrigin));
     },
   });
 
