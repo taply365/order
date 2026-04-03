@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taply Order Server</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #132033;
+      --muted: #5d6b82;
+      --accent: #1f6feb;
+      --border: #dbe4f0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #eef3ff 0%, #f8fafc 50%, #e8f0ff 100%);
+      color: var(--text);
+    }
+
+    .card {
+      width: min(92vw, 560px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 16px 40px rgba(19, 32, 51, 0.08);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 2rem;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .badge {
+      display: inline-block;
+      margin-bottom: 16px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(31, 111, 235, 0.1);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="badge">Taply Order Server</div>
+    <h1>Connection successful</h1>
+    <p>The API server is running and the root route is serving this HTML page.</p>
+  </main>
+</body>
+</html>
