@@ -18,24 +18,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(cookieParser());
 
-const allowedOrigins = new Set(origins);
-const corsOptions = {
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.has(origin)) {
-      callback(null, true);
-      return;
-    }
-    callback(new Error("Not allowed by CORS"));
-  },
+// important for cookies from frontend
+app.use(cors({
+  origin: origins,
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  optionsSuccessStatus: 200,
-};
-
-// important for cookies and credentialed requests from frontend
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+  methods: [ "GET" , "POST" , "PUT" , "DELETE" , "PATCH" , "OPTIONS" ]
+}));
 
 app.get('/connection', (req, res) => {
     res.status(200).json({ message: 'Connection successful' });
