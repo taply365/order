@@ -9,7 +9,6 @@ export const origins = [
   "https://www.taply.dk",
   "https://dev.taply.dk",
   "https://www.dev.taply.dk",
-  "https://api.dev.taply.dk",
 ]
 
 export const orderStatus = {
