@@ -28,7 +28,7 @@ export function getLastSocket() {
  * @returns {{ server: http.Server, io: Server }}
  */
 export default function createSocketServer(app) {
-  const server = http.createServer(app);z
+  const server = http.createServer(app);
 
   const io = new Server(server, {
     path: "/order-socket/socket.io",
