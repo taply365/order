@@ -69,6 +69,32 @@ async function HandleSendTableOrdersForKitchen(req, res) {
         console.log(err)
         log.err('Error fetching kitchen data by date:', err);
     }
+};
+
+
+async function HandleUpdateOrdersStatus(req, res) {
+  try {
+    const status = req.params.status;
+    const orders = req.body;
+
+    log.info(`Updating status of ${orders.length} orders to '${status}'`);
+
+    for (const order of orders) {
+      await RunQuery(
+        `UPDATE orders SET status = ? WHERE id = ?`,
+        [status, order.orderId]
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Order status updated successfully`,
+      data: { status, orders }
+    });
+  } catch (error) {
+    log.err("Error updating order status:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 }
 
-export { HandleGetOrdersForKitchen, HandleSendTableOrdersForKitchen };
+export { HandleGetOrdersForKitchen, HandleSendTableOrdersForKitchen, HandleUpdateOrdersStatus };
