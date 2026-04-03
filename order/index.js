@@ -194,9 +194,9 @@ export async function getOrdersHistory(businessId, status) {
             FROM orders
             WHERE businessId = ?
             AND DATE(createdAt) = CURDATE()
-            AND (status = ? OR status = ?)
+            AND (status = ? OR status = ? OR status = ? OR status = ?)
             ORDER BY createdAt DESC
-        `, [businessId, status, "CANCELLED"]);
+        `, [businessId, status, "CANCELLED", "COMPLETED", "PAID"]);
         return results;
     }
     catch (error) {

@@ -32,6 +32,7 @@ router.post("/business/:id/kitchen-routing/send-table-orders/table/:tableId", co
 router.put("/order/status", controller.HandleUpdateOrderStatus); // order status update by business
 router.put("/order/:orderId/payment-success/:paymentIntentId", controller.HandleOrderPaymentSuccess); // order POS payment success update by business
 router.put("/order/:orderId/payment-success/:paymentIntentId/session/:sessionId", controller.HandleCheckoutSessionSuccess); // order POS payment success update by business
+router.put("/order/table-order/:id/status/:status", controller.HandleUpdateTableOrderStatus); // table order status update by business
 
 
 
