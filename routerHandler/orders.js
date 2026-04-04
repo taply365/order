@@ -348,7 +348,6 @@ async function HandleOrderPaymentSuccess(req, res) {
   const businessId = order?.businessId;
 
   await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,["PREPARING", orderId]);
-  log.info("This is online ordering payment (not checkout session), emitting new order to business room");
   io.to(`business:${businessId}`)
   .timeout(5000)
   .emit("new_order", order, (err, responses) => {
