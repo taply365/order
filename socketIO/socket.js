@@ -1,15 +1,15 @@
 import http from "http";
 import { Server } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
+import { createClient } from "redis";
 import jwt from "jsonwebtoken";
 import log from "minhluanlu-color-log";
-import { config } from "../config.js";
 import dotenv from "dotenv";
+
+import { config, origins } from "../config.js";
+import { emitEvent } from "./events.js";
+
 dotenv.config();
-import {emitEvent} from "./events.js";
-
-import { origins } from "../config.js";
-
-
 
 let ioInstance = null;
 let lastSocketInstance = null;
@@ -23,22 +23,13 @@ export function getLastSocket() {
   return lastSocketInstance;
 }
 
-/**
- * @param {import("express").Express} app
- * @returns {{ server: http.Server, io: Server }}
- */
-
-// connect to socketServer togetther
-//npm install @socket.io/redis-adapter redis
-
-
-export default function createSocketServer(app) {
+export default async function createSocketServer(app) {
   const server = http.createServer(app);
 
   const io = new Server(server, {
     path: "/order-socket/socket.io",
     cors: {
-      origin: origins, //  origin: ["https://yourdomain.com"], // only your site
+      origin: origins,
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
       credentials: true,
     },
@@ -46,25 +37,34 @@ export default function createSocketServer(app) {
 
   ioInstance = io;
 
-  // Auth middleware
+  const redisPassword = process.env.REDIS_PASSWORD;
+  const redisHost = process.env.REDIS_HOST;
+  const redisPort = process.env.REDIS_PORT;
+
+  const pubClient = createClient({
+    url: `redis://:${redisPassword}@${redisHost}:${redisPort}`,
+  });
+
+  const subClient = pubClient.duplicate();
+
+  pubClient.on("error", (err) => log.err("Redis pubClient error:", err));
+  subClient.on("error", (err) => log.err("Redis subClient error:", err));
+
+  await pubClient.connect();
+  await subClient.connect();
+
+  io.adapter(createAdapter(pubClient, subClient));
+
   io.use((socket, next) => {
     try {
       const { token } = socket.handshake.auth || {};
       if (!token) return next(new Error("missing auth"));
-      
-      const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" }); // same key you sign with
-      socket.user = decoded; // attach user info for later use
-      
-      if(socket?.user?.businessId != undefined && socket?.user?.businessId != null){ 
-        socket.join(`business:${socket.user?.businessId}`);
-        log.debug(`🤝 Joined business room: ${socket.user?.businessId}`);
-      } 
 
-      if(socket?.user?.guestId != undefined && socket?.user?.guestId != null){
-        socket.join(`guest:${socket.user?.guestId}`);
-        log.debug(`🤝 Joined guest room: ${socket.user?.guestId}`);
-      }
+      const decoded = jwt.verify(token, process.env.SECRET_KEY, {
+        algorithms: ["HS256"],
+      });
 
+      socket.user = decoded;
       next();
     } catch (err) {
       log.err("JWT verify failed:", err.name, err.message);
@@ -72,33 +72,41 @@ export default function createSocketServer(app) {
     }
   });
 
-  // ✅ server-side event is "connection"
   io.on("connection", (socket) => {
     lastSocketInstance = socket;
 
-    log.debug(`🔌Connection accepted socketID=(${socket.id})`);
+    log.debug(`🔌 Connection accepted socketID=(${socket.id})`);
+
+    if (socket?.user?.businessId != null) {
+      socket.join(`business:${socket.user.businessId}`);
+      log.debug(`🤝 Joined business room: ${socket.user.businessId}`);
+    }
+
+    if (socket?.user?.guestId != null) {
+      socket.join(`guest:${socket.user.guestId}`);
+      log.debug(`🤝 Joined guest room: ${socket.user.guestId}`);
+    }
 
     socket.on("disconnect", (reason) => {
       log.debug(`🔌❌ socket ${socket.id} disconnected: ${reason}`);
     });
 
-    // Example event
     socket.on("ping", (data, ack) => {
       log.debug("ping received:", data);
-      console.log("ping received:", data);
-      if (typeof ack === "function") ack({ success: true, ts: Date.now() });
+      if (typeof ack === "function") {
+        ack({ success: true, ts: Date.now() });
+      }
     });
 
-    emitEvent(io,socket);
+    emitEvent(io, socket);
   });
 
   const PORT = config.SOCKET_PORT;
 
   server.listen(PORT, "0.0.0.0", () => {
-    log.info(`[Socket 📡🔌]running on 🌐 - http://localhost:${PORT}`);
+    log.info(`[Socket 📡🔌] running on 🌐 - http://localhost:${PORT}`);
   });
 
-  // Helpful server error logging
   server.on("error", (err) => {
     log.err("HTTP server error:", err);
   });
