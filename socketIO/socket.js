@@ -27,6 +27,11 @@ export function getLastSocket() {
  * @param {import("express").Express} app
  * @returns {{ server: http.Server, io: Server }}
  */
+
+// connect to socketServer togetther
+//npm install @socket.io/redis-adapter redis
+
+
 export default function createSocketServer(app) {
   const server = http.createServer(app);
 
