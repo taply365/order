@@ -74,6 +74,7 @@ async function HandleSendTableOrdersForKitchen(req, res) {
 
 async function HandleUpdateOrdersStatus(req, res) {
   try {
+    const io = getIO();
     const status = req.params.status;
     const orders = req.body;
 
@@ -84,7 +85,12 @@ async function HandleUpdateOrdersStatus(req, res) {
         `UPDATE orders SET status = ? WHERE id = ?`,
         [status, order.orderId]
       );
-    }
+
+        log.info(`Order ${order.orderId} status updated to '${status}' in database, now notifying customer ${order.customerId}`);
+        io.to(`guest:${order.customerId}`).emit("orderStatusUpdate", { orderId: order.orderId, status });
+    };
+
+
 
     res.status(200).json({
       success: true,
