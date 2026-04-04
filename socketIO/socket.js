@@ -14,35 +14,6 @@ import { origins } from "../config.js";
 let ioInstance = null;
 let lastSocketInstance = null;
 
-const INTERNAL_SOCKET_PATH = "/socket.io";
-const EXTERNAL_SOCKET_PATH = "/order-socket/socket.io";
-
-function normalizeSocketPath(req) {
-  if (!req?.url || !req.url.startsWith(EXTERNAL_SOCKET_PATH)) return;
-  req.url = req.url.replace(EXTERNAL_SOCKET_PATH, INTERNAL_SOCKET_PATH);
-}
-
-function extractSocketToken(socket) {
-  const authToken = socket?.handshake?.auth?.token;
-  if (authToken) return authToken;
-
-  const queryToken = socket?.handshake?.query?.token;
-  if (typeof queryToken === "string" && queryToken.length > 0) return queryToken;
-
-  const authHeader = socket?.handshake?.headers?.authorization;
-  if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
-    return authHeader.slice(7);
-  }
-
-  const cookieHeader = socket?.handshake?.headers?.cookie;
-  if (typeof cookieHeader === "string") {
-    const match = cookieHeader.match(/(?:^|;\s*)(?:token|access_token)=([^;]+)/);
-    if (match?.[1]) return decodeURIComponent(match[1]);
-  }
-
-  return null;
-}
-
 export function getIO() {
   if (!ioInstance) throw new Error("Socket.IO not initialized yet");
   return ioInstance;
@@ -59,16 +30,8 @@ export function getLastSocket() {
 export default function createSocketServer(app) {
   const server = http.createServer(app);
 
-  server.prependListener("request", (req) => {
-    normalizeSocketPath(req);
-  });
-
-  server.prependListener("upgrade", (req) => {
-    normalizeSocketPath(req);
-  });
-
   const io = new Server(server, {
-    path: INTERNAL_SOCKET_PATH,
+    path: "/order-socket/socket.io",
     cors: {
       origin: origins, //  origin: ["https://yourdomain.com"], // only your site
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
@@ -81,7 +44,7 @@ export default function createSocketServer(app) {
   // Auth middleware
   io.use((socket, next) => {
     try {
-      const token = extractSocketToken(socket);
+      const { token } = socket.handshake.auth || {};
       if (!token) return next(new Error("missing auth"));
       
       const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" }); // same key you sign with
@@ -99,7 +62,7 @@ export default function createSocketServer(app) {
 
       next();
     } catch (err) {
-      log.err("Socket auth failed:", err.name, err.message);
+      log.err("JWT verify failed:", err.name, err.message);
       return next(new Error("unauthorized"));
     }
   });
