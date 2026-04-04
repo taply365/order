@@ -12,6 +12,7 @@ export const jwtMiddleware = expressjwt({
     path: [
         /^\/gen-guest-token\/.*/,
         "/gen-guest-token",
+        "/production/authenticate",
         "/",
         "/connection",
         "/favicon.ico"

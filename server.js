@@ -2,6 +2,7 @@ import "dotenv/config";
 import express, { json}  from "express";
 import cors from 'cors';
 import cookieParser from "cookie-parser";
+import rateLimit from "express-rate-limit";
 import { fileURLToPath } from "url";
 
 import { config } from "./config.js";
@@ -14,6 +15,16 @@ import { origins } from "./config.js";
 
 const app = express();
 const homePagePath = fileURLToPath(new URL("./templates/index.html", import.meta.url));
+const apiRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests, please try again later.",
+  },
+});
 app.use(json({ limit: '10mb' })) // limit payload it 10MB
 app.use(express.static('upload/images')); 
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -26,6 +37,22 @@ app.use(cors({
   credentials: true,
   methods: [ "GET" , "POST" , "PUT" , "DELETE" , "PATCH" , "OPTIONS" ]
 }));
+
+app.use(apiRateLimit);
+
+const authRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many authentication requests, please try again later.",
+  },
+});
+
+app.use("/production/authenticate", authRateLimit);
+app.use("/gen-guest-token", authRateLimit);
 
 app.get('/', (req, res) => {
   res.status(200).sendFile(homePagePath);
