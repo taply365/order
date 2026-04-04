@@ -14,6 +14,7 @@ import { origins } from "./config.js";
 
 
 const app = express();
+app.set("trust proxy", 1);
 const homePagePath = fileURLToPath(new URL("./templates/index.html", import.meta.url));
 const apiRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -38,7 +39,7 @@ app.use(cors({
   methods: [ "GET" , "POST" , "PUT" , "DELETE" , "PATCH" , "OPTIONS" ]
 }));
 
-app.use(apiRateLimit);
+/* app.use(apiRateLimit);
 
 const authRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -49,7 +50,7 @@ const authRateLimit = rateLimit({
     success: false,
     message: "Too many authentication requests, please try again later.",
   },
-});
+}); */
 
 app.use("/production/authenticate", authRateLimit);
 app.use("/gen-guest-token", authRateLimit);
