@@ -29,6 +29,7 @@ async function HandleGetOrdersForKitchen(req, res) {
 }
 
 
+
 async function HandleSendTableOrdersForKitchen(req, res) {
     try {
         const data = req.body;
@@ -56,7 +57,19 @@ async function HandleSendTableOrdersForKitchen(req, res) {
             }
         });
 
-        await RunQuery(`UPDATE tableOrders SET status = "PREPARING" WHERE tableId = ? `, [parseInt(tableId)]);    
+
+        // update all products to PREPARING status in tableOrders
+        for (const order of data) {
+            order.data = order.data.map(item => ({
+                ...item,
+                status: "PREPARING"
+            }));
+
+            await RunQuery(
+                `UPDATE tableOrders SET status = "PREPARING", data = ? WHERE id = ?`,
+                [JSON.stringify(order.data), order.id]
+            );
+        }
 
 
         res.status(200).json({

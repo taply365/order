@@ -7,13 +7,15 @@ import { getIO } from "../socketIO/socket.js";
 async function HandleUpdateTableOrderStatus(req, res) {
     try{
         const data = req.body;
-        const { status, id, tableId } = data;
+        const { status, id , tableId } = data;
         const io = getIO();
 
-        log.debug(`Received request to update table order status: ${JSON.stringify(data)}`);
+        log.info(`Received request to update table order status`);
 
-        const query = 'UPDATE tableOrders SET status = ? WHERE id = ?';
-        await RunQuery(query, [status, id]);
+        const query = 'UPDATE tableOrders SET status = ?, data = ? WHERE id = ?';
+        await RunQuery(query, [status, JSON.stringify(data.data), data.id]);
+
+
         const business = await RunQuery('SELECT businessId FROM tables WHERE id = ?', [tableId]);
         if(business.length > 0){
             const businessId = business[0].businessId;
