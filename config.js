@@ -7,6 +7,7 @@ export const origins = [
   "http://localhost:5173",
   "https://taply.dk",
   "https://www.taply.dk",
+  "https://taply.dk",
   "https://dev.taply.dk",
   "https://www.dev.taply.dk",
 ]
