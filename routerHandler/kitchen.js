@@ -32,11 +32,22 @@ async function HandleGetOrdersForKitchen(req, res) {
 
 async function HandleSendTableOrdersForKitchen(req, res) {
     try {
-        const data = req.body;
+        let data = req.body;
         const businessId = req.params.id;
         const tableId = req.params.tableId;
         console.log('Received data for sending table orders to kitchen:', data);
         const io = getIO();
+
+        if(tableId === "null"){
+            const tableOrder = await HandleSendTableOrdersForKitchenWithoutTable(businessId, data[0]);
+            if (!tableOrder) {
+                return res.status(500).json({
+                    success: false,
+                    message: `Failed to create table order for businessId: ${businessId}`,
+                });
+            }
+            data = tableOrder;
+        }
 
         log.info(`Emitting 'update_tableOrders_list' event to business room: ${businessId} with data:`, {success: true});
         io.to(`business:${businessId}`)
@@ -81,6 +92,56 @@ async function HandleSendTableOrdersForKitchen(req, res) {
     catch(err){
         console.log(err)
         log.err('Error fetching kitchen data by date:', err);
+    }
+};
+
+const HandleSendTableOrdersForKitchenWithoutTable = async (businessId, data) => {
+    try {
+        const totalPrice = data.totalPrice || 0;
+
+        console.log("Handling send table orders for kitchen without table");
+        const tableResult = await RunQuery(
+            `
+            SELECT id
+            FROM tables
+            WHERE businessId = ? AND number = 0
+            LIMIT 1
+            `,
+            [businessId]
+        );
+
+        if (!tableResult || tableResult.length === 0) {
+            throw new Error(`No table found for businessId: ${businessId}`);
+        }
+
+        const tableId = tableResult[0].id;
+
+        const createTableOrder = await RunQuery(
+            `
+            INSERT INTO tableOrders (tableId, data, totalPrice, status, currency)
+            VALUES (?, ?, ?, ?, ?)
+            `,
+            [tableId, JSON.stringify(data?.data), totalPrice, "PENDING", data.currency ]
+        );
+
+        const id = createTableOrder.insertId;
+
+        const tableOrder = await RunQuery(
+            `
+            SELECT *
+            FROM tableOrders
+            WHERE id = ?
+            LIMIT 1
+            `,
+            [id]
+        );
+
+        console.log("Created table order without table:", tableOrder);
+        return tableOrder;
+    } catch (err) {
+        console.log(err);
+        log.err("Error sending table order for kitchen without table:", err);
+        return null;
     }
 };
 
