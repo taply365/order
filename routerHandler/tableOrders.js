@@ -21,7 +21,7 @@ async function HandleUpdateTableOrderStatus(req, res) {
             const businessId = business[0].businessId;
             io.to(`business:${businessId}`)
             .timeout(5000)
-            .emit("table_order_updated", {tableId: tableId}, (err, responses) => {
+            .emit("table_order_updated", {tableId: tableId, id: id}, (err, responses) => {
                 log.debug(`sending table order updated event to business room: ${businessId}`);
 
                 if (err) {
