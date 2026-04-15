@@ -27,6 +27,9 @@ router.get("/pickup-time/user-business/:id", controller.HandleCheckOrderPickupTi
 router.post("/new-order", controller.HandleGetNewOrders); // New order from online ordring
 router.post("/order/receipt/send-to-mail", controller.HandleSendReceiptToEmail); // send receipt to email after order payment success
 router.post("/business/:id/kitchen-routing/send-table-orders/table/:tableId", controller.HandleSendTableOrdersForKitchen); // send table orders to kitchen
+router.post("/business/terminal/send-open-checkout-session", controller.HandleSendOpenCheckoutSessionToApp); // send open checkout session event to app for POS checkout
+router.post("/business/terminal/send-close-checkout-session", controller.HandleSendCloseCheckoutSessionToApp);
+
 
 // PUT //
 router.put("/order/status", controller.HandleUpdateOrderStatus); // order status update by business
@@ -34,6 +37,7 @@ router.put("/order/:orderId/payment-success/:paymentIntentId", controller.Handle
 router.put("/order/:orderId/payment-success/:paymentIntentId/session/:sessionId", controller.HandleCheckoutSessionSuccess); // order POS payment success update by business
 router.put("/order/table-order/:id/status/:status", controller.HandleUpdateTableOrderStatus); // table order status update by business
 router.put("/kitchen-routing/update-orders-status/:status", controller.HandleUpdateOrdersStatus); // multiple orders status update by business
+
 
 
 
