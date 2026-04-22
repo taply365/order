@@ -35,13 +35,14 @@ async function HandleSendTableOrdersForKitchen(req, res) {
         const data = req.body;
         const businessId = req.params.id;
         const tableId = req.params.tableId;
+        const clear = req.query.clear === 'true'; // ✅ parse boolean
         console.log('Received data for sending table orders to kitchen:', data);
         const io = getIO();
 
         log.info(`Emitting 'update_tableOrders_list' event to business room: ${businessId} with data:`, {success: true});
         io.to(`business:${businessId}`)
         .timeout(5000)
-        .emit("update_tableOrders_list", {success: true}, (err, responses) => {
+        .emit("update_tableOrders_list", {success: true, tableId: tableId}, (err, responses) => {
             log.debug(`sending checkout session to business room: ${businessId}`);
 
             if (err) {
@@ -56,6 +57,27 @@ async function HandleSendTableOrdersForKitchen(req, res) {
             log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
             }
         });
+
+        if(clear){
+            console.log('❌ clear flag:', clear);
+            io.to(`business:${businessId}`)
+            .timeout(5000)
+            .emit("table_order_deleted", {clear: true, tableId: tableId}, (err, responses) => {
+                log.debug(`sending clear table orders to business room: ${businessId}`);
+
+                if (err) {
+                log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
+                }
+
+                const confirmed = responses?.some((res) => res?.success);
+
+                if (confirmed) {
+                log.info(`[socket ✅📦] Clear table orders confirmed for business with uid: ${businessId}`);
+                } else {
+                log.warn(`[socket ⚠️📤] No client confirmed clear table orders for business with uid: ${businessId}`);
+                }
+            });
+        }
 
 
         // update all products to PREPARING status in tableOrders
