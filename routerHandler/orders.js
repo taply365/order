@@ -28,6 +28,7 @@ const HandleGetNewOrders = async (req, res) => {
   try {
     let { receiverId, orders, orderPickupTime } = req.body;
     const  { guestId } = await getJwtTokenData(req);
+    const orderType = req.query.type || "online";
 
     if (!guestId) {
       console.log(guestId)
@@ -139,7 +140,8 @@ const HandleGetNewOrders = async (req, res) => {
       });
     }
 
-    const create_payment = await HandleCreatePayment(orderDetails);
+    log.err({orderTYE: orderType})
+    const create_payment = await HandleCreatePayment(orderType, orderDetails);
     if(!create_payment){
       log.warn(`[💳❌]Payment processing failed for order ID: ${orderDetails.id}`);
       await connection.rollback();
@@ -152,9 +154,11 @@ const HandleGetNewOrders = async (req, res) => {
 
     await connection.commit();
 
+
+
     // update order with paymentIntentId
-    const { paymentIntentId } = create_payment;
-    await RunQuery(`UPDATE orders SET paymentIntentId = ? WHERE id = ?`, [paymentIntentId, orderDetails.id]);
+    const { paymentIntentId, orderNumber } = create_payment;
+    await RunQuery(`UPDATE orders SET paymentIntentId = ?, orderNumber = ?, type = ? WHERE id = ?`, [paymentIntentId, orderNumber, orderType, orderDetails.id]);
 
     const token = jwt.sign(
         { orderId: orderDetails.id, guestId: guestId, isBusiness: false},
