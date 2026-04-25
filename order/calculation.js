@@ -63,6 +63,7 @@ export const pickupTimeCalculation = async (businessId) => {
   const roundedEarliest = ceilToSlot(earliestReady, slotMinutes);
 
   let pickupTime = roundedEarliest;
+  log.info("Current server time:", now);
 
   // Find first available slot starting from roundedEarliest
   while (true) {
