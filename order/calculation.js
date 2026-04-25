@@ -59,11 +59,15 @@ export const pickupTimeCalculation = async (businessId) => {
   const { maxOrdersPerSlot, slotMinutes, prepMinutes, slotLimit, openingHours } = kitchenCapacity;
 
   const now = new Date();
+  const localTime = now.toLocaleString("en-DK", {
+    timeZone: "Europe/Copenhagen",
+  });
   const earliestReady = new Date(now.getTime() + prepMinutes * 60 * 1000);
   const roundedEarliest = ceilToSlot(earliestReady, slotMinutes);
 
   let pickupTime = roundedEarliest;
   log.info({"Current server time:": now});
+  log.info({"Europe/Copenhagen time:": localTime});
 
   // Find first available slot starting from roundedEarliest
   while (true) {
