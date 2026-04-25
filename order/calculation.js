@@ -71,6 +71,8 @@ export const pickupTimeCalculation = async (businessId) => {
       SELECT COUNT(*) AS count
       FROM orders
       WHERE pickupAt = ?
+      AND createdAt >= CURDATE()
+      AND createdAt < CURDATE() + INTERVAL 1 DAY;
       `,
       [pickupTime.toISOString()]
     );
@@ -97,6 +99,8 @@ export const pickupTimeCalculation = async (businessId) => {
       SELECT COUNT(*) AS count
       FROM orders
       WHERE pickupAt = ?
+      AND createdAt >= CURDATE()
+      AND createdAt < CURDATE() + INTERVAL 1 DAY;
       `,
       [slotTime.toISOString()]
     );
