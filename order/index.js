@@ -124,6 +124,7 @@ export async function getOrderById(orderId) {
   const rows = await RunQuery(`
     SELECT
       o.id AS id,
+      o.orderNumber AS orderNumber,
       o.businessId AS orderBusinessId,
       o.customerId AS customerId,
       o.data,
