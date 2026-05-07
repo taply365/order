@@ -2,6 +2,7 @@ import log from "minhluanlu-color-log";
 import { buildReceiptHtml, htmlToPdf } from "../templates/build.js";
 import { SendPdfEmail } from "../email/index.js";
 import { ClearSession, CreateReceiptSession, GetReceiptSession } from "../receipt/receiptSession.js";
+import { RunQuery } from "../db/db.js";
 
 
 
@@ -45,8 +46,17 @@ async function HandleSendReceiptToEmail(req, res) {
 
 async function HandleCreateReceiptSession(req, res) {
     try{
-        const { orderId, businessId } = req.body;
-        log
+        let { orderId, businessId, paymentIntentId } = req.body;
+        if(!orderId){
+          const order = await RunQuery(`SELECT id FROM orders WHERE paymentIntentId = ?`, [paymentIntentId]);
+          if(order.length === 0){
+            log.err("No order found with paymentIntentId:", paymentIntentId);
+            return res.status(404).json({success: false, message: "Order not found" });
+          }
+          orderId = order[0].id;
+          log.debug("Found orderId:", orderId, "for paymentIntentId:", paymentIntentId);
+        }
+
         if(!orderId || !businessId){
           log.err("Missing orderId or businessId in request body");
             return res.status(400).json({success: false, message: "Missing orderId or businessId" });
