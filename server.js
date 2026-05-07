@@ -13,6 +13,7 @@ import router from "./routers/routers.js";
 import { origins } from "./config.js";
 
 
+
 const app = express();
 app.set("trust proxy", 1);
 const homePagePath = fileURLToPath(new URL("./templates/index.html", import.meta.url));
@@ -52,8 +53,21 @@ const authRateLimit = rateLimit({
   },
 });
 
+const receiptRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many receipt requests, please try again later.",
+  },
+});
+
 app.use("/production/authenticate", authRateLimit);
 app.use("/gen-guest-token", authRateLimit);
+app.use("/order/receipt-session", receiptRateLimit);
+
 
 app.get('/', (req, res) => {
   res.status(200).sendFile(homePagePath);

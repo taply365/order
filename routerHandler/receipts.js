@@ -1,6 +1,8 @@
 import log from "minhluanlu-color-log";
 import { buildReceiptHtml, htmlToPdf } from "../templates/build.js";
 import { SendPdfEmail } from "../email/index.js";
+import { ClearSession, CreateReceiptSession, GetReceiptSession } from "../receipt/receiptSession.js";
+
 
 
 async function HandleSendReceiptToEmail(req, res) {
@@ -38,6 +40,59 @@ async function HandleSendReceiptToEmail(req, res) {
         error: "Internal Server Error" 
     });
   }
+};
+
+
+async function HandleCreateReceiptSession(req, res) {
+    try{
+        const { orderId, businessId } = req.body;
+        log
+        if(!orderId || !businessId){
+          log.err("Missing orderId or businessId in request body");
+            return res.status(400).json({success: false, message: "Missing orderId or businessId" });
+        }
+        
+        const clear = await ClearSession(businessId);
+        if(!clear){
+          log.err("Failed to clear existing session for businessId:", businessId);
+          return res.status(500).json({success: false, message: "Failed to clear existing session" });
+        }
+        const created = await CreateReceiptSession(orderId, businessId);
+        if(created){
+          log.debug("Receipt session created successfully for orderId:", orderId);
+            res.json({success: true, message: "Session created successfully" });
+        }
+        else{
+            log.err("Failed to create receipt session for orderId:", orderId);
+            res.status(500).json({success: false, message: "Failed to create session" });
+        }
+    }
+    catch(err){
+        console.error("Error in HandleCreateReceiptSession:", err);
+        res.status(500).json({success: false,message: "Failed to create session", error: "Internal Server Error" });
+    }
+};
+
+
+async function HandleGetReceiptSession(req, res) {
+  const { businessId, code } = req.params;
+  log.debug("Received request to get receipt session with businessId:", businessId, "and code:", code);
+  if (!businessId || !code) {
+    log.err("Missing businessId or code in request params");
+    return res.status(400).json({ success: false, message: "Missing businessId or code" });
+  }
+  try {
+    const session = await GetReceiptSession(businessId);
+    if (session) {
+      res.json({ success: true, message: "Session found", data: session });
+    } else {
+      res.status(404).json({ success: false, message: "Session not found" });
+    }
+  } catch (err) {
+    console.error("Error in /order/receipt-session:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
 }
 
-export { HandleSendReceiptToEmail };
+
+export { HandleSendReceiptToEmail, HandleCreateReceiptSession, HandleGetReceiptSession };

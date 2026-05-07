@@ -4,7 +4,7 @@ import { HandleCheckBusinessOpenHours } from "../routerHandler/businesses.js";
 import { HandleGetPaymentByPaymentIntentId } from "../routerHandler/payments.js";
 import { HandleAuth } from "../routerHandler/auth.js";
 import { HandleGetOrdersForKitchen, HandleSendTableOrdersForKitchen, HandleUpdateOrdersStatus } from "../routerHandler/kitchen.js";
-import { HandleSendReceiptToEmail } from "../routerHandler/receipts.js";
+import { HandleSendReceiptToEmail, HandleCreateReceiptSession, HandleGetReceiptSession } from "../routerHandler/receipts.js";
 import { HandleCheckoutSessionSuccess } from "../routerHandler/checkout_session.js";
 import { HandleUpdateTableOrderStatus } from "../routerHandler/tableOrders.js";
 import { HandleSendOpenCheckoutSessionToApp, HandleSendCloseCheckoutSessionToApp } from "../routerHandler/terminal.js";
@@ -25,12 +25,13 @@ const Controller = {
    HandleGetOrdersForKitchen,
    HandleSendTableOrdersForKitchen,
    HandleSendReceiptToEmail,
+   HandleCreateReceiptSession,
+   HandleGetReceiptSession,
    HandleCheckoutSessionSuccess,
    HandleUpdateTableOrderStatus,
    HandleUpdateOrdersStatus,
    HandleSendOpenCheckoutSessionToApp,
-   HandleSendCloseCheckoutSessionToApp
-
+   HandleSendCloseCheckoutSessionToApp,
 }
 
 

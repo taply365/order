@@ -26,6 +26,8 @@ router.get("/pickup-time/user-business/:id", controller.HandleCheckOrderPickupTi
 // POST //
 router.post("/new-order", controller.HandleGetNewOrders); // New order from online ordring
 router.post("/order/receipt/send-to-mail", controller.HandleSendReceiptToEmail); // send receipt to email after order payment success
+router.post("/order/business/:businessId/order/:orderId/print-receipt", controller.HandleCreateReceiptSession); // create receipt session
+router.get("/order/receipt-session/business/:businessId/code/:code", controller.HandleGetReceiptSession); // get receipt session
 router.post("/business/:id/kitchen-routing/send-table-orders/table/:tableId", controller.HandleSendTableOrdersForKitchen); // send table orders to kitchen
 router.post("/business/terminal/send-open-checkout-session", controller.HandleSendOpenCheckoutSessionToApp); // send open checkout session event to app for POS checkout
 router.post("/business/terminal/send-close-checkout-session", controller.HandleSendCloseCheckoutSessionToApp);
