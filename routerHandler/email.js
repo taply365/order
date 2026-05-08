@@ -1,5 +1,5 @@
 import log from "minhluanlu-color-log";
-import { SendWellcomeEmail} from "../email/index.js";
+import { SendWellcomeEmail, SendSupportEmail } from "../email/index.js";
 
 const handleSendWellcomeEmail = async (req, res) => {
     try{
@@ -14,4 +14,18 @@ const handleSendWellcomeEmail = async (req, res) => {
     }
 };
 
-export { handleSendWellcomeEmail };
+const handleSendSupportEmail = async (req, res) => {
+    try{
+        const data = req.body;
+        const {email, message}  = data;
+        log.debug("📧 Received request to send support email to support team:", email);
+        await SendSupportEmail(data);
+        res.status(200).json({ success: true, message: 'Support email sent successfully' });
+    }
+    catch(error){
+        console.log('❌ Error in handleSendSupportEmail:', error);
+        res.status(500).json({ success: false, message: 'Failed to send support email' });
+    }
+};
+
+export { handleSendWellcomeEmail, handleSendSupportEmail };

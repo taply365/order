@@ -11,6 +11,7 @@ const APP_EMAIL = process.env.APP_EMAIL;
 const APP_PASSWORD = process.env.APP_PASSWORD;
 const SALES_EMAIL = process.env.SALES_EMAIL;
 const TEAM_EMAIL = process.env.TEAM_EMAIL;
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL;
 const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD;
 
 
@@ -131,8 +132,41 @@ async function SendWellcomeEmail(user) {
 }
 
 
+// ✅ NEW: Send support email to the support team
+async function SendSupportEmail(data) {
+  try {
+    if (!data?.message) {
+      throw new Error("Message is required");
+    }
+    console.log("📧 Received support email data:", data);
+
+    const payload = {
+      from: TEAM_EMAIL,
+      subject: "Customer support request",
+      to: SUPPORT_EMAIL,
+      html: `
+        <p><strong>Email:</strong> ${data.email}</p>
+        <p><strong>Message:</strong></p>
+        <p>${data.message}</p>
+      `,
+    };
+
+    await sendEmail(payload);
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    log.err("❌ Error sending support email:", error);
+
+    throw new Error("Failed to send support email");
+  }
+}
+
+
 export {
   SendPdfEmail,
   SendReceiptEmail,
-  SendWellcomeEmail
+  SendWellcomeEmail,
+  SendSupportEmail
 }
