@@ -1,6 +1,6 @@
 import log from "minhluanlu-color-log";
 import { buildReceiptHtml, htmlToPdf } from "../templates/build.js";
-import { SendPdfEmail } from "../email/index.js";
+import { SendReceiptEmail } from "../email/index.js";
 import { ClearSession, CreateReceiptSession, GetReceiptSession } from "../receipt/receiptSession.js";
 import { RunQuery } from "../db/db.js";
 
@@ -19,7 +19,7 @@ async function HandleSendReceiptToEmail(req, res) {
     log.debug("Converted HTML to PDF buffer for receipt email.");
 
     // 3. Send email with attachment
-    await SendPdfEmail({
+    await SendReceiptEmail({
       to: order.email,
       subject: `Receipt #${order.id}`,
       html: `<p>Your receipt is attached.</p>`,
