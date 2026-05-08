@@ -32,6 +32,9 @@ router.post("/business/:id/kitchen-routing/send-table-orders/table/:tableId", co
 router.post("/business/terminal/send-open-checkout-session", controller.HandleSendOpenCheckoutSessionToApp); // send open checkout session event to app for POS checkout
 router.post("/business/terminal/send-close-checkout-session", controller.HandleSendCloseCheckoutSessionToApp);
 
+// EMAIL //
+router.post("/email/wellcome", controller.handleSendWellcomeEmail); // send email with custom template
+
 
 // PUT //
 router.put("/order/status", controller.HandleUpdateOrderStatus); // order status update by business

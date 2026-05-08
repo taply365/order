@@ -8,6 +8,7 @@ import { HandleSendReceiptToEmail, HandleCreateReceiptSession, HandleGetReceiptS
 import { HandleCheckoutSessionSuccess } from "../routerHandler/checkout_session.js";
 import { HandleUpdateTableOrderStatus } from "../routerHandler/tableOrders.js";
 import { HandleSendOpenCheckoutSessionToApp, HandleSendCloseCheckoutSessionToApp } from "../routerHandler/terminal.js";
+import { handleSendWellcomeEmail } from "../routerHandler/email.js";
 
 
 const Controller = {
@@ -32,6 +33,7 @@ const Controller = {
    HandleUpdateOrdersStatus,
    HandleSendOpenCheckoutSessionToApp,
    HandleSendCloseCheckoutSessionToApp,
+   handleSendWellcomeEmail,
 }
 
 

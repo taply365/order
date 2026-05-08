@@ -1,12 +1,16 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import log from 'minhluanlu-color-log';
+import juice from 'juice';
 dotenv.config();
+
+import { GenWellcomeTemplate } from './genTemplate.js';
 
 
 const APP_EMAIL = process.env.APP_EMAIL;
 const APP_PASSWORD = process.env.APP_PASSWORD;
 const SALES_EMAIL = process.env.SALES_EMAIL;
+const TEAM_EMAIL = process.env.TEAM_EMAIL;
 const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD;
 
 
@@ -41,8 +45,42 @@ async function SendPdfEmail(data) {
   }
 }
 
+async function sendEmail(data) {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: "send.one.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: TEAM_EMAIL,
+        pass: EMAIL_PASSWORD,
+      },
+    });
+
+    const { subject, to, html } = data;
+
+    // Inline CSS for better email client compatibility
+    const inlinedHTML = juice(String(html), { preserveMediaQueries: true });
+
+    log.debug("📧 Sending email to:", to);
+
+    const mailOptions = {
+      from: TEAM_EMAIL,
+      to: to,
+      subject: subject,
+      html: inlinedHTML, // ✅ FIXED: use `html`, not `template`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    log.info("✅ Email sent:", info.response);
+    return true;
+  } catch (error) {
+    throw error;
+  }
+};
 
 
+// ✅ NEW: Send receipt email with PDF attachment
 async function SendReceiptEmail(data) {
   const transporter = nodemailer.createTransport({
     host: 'send.one.com',
@@ -75,9 +113,16 @@ async function SendReceiptEmail(data) {
 }
 
 
-async function SendWellcomeEmail(data) {
+// ✅ NEW: Send welcome email using the template
+async function SendWellcomeEmail(user) {
   try{
-
+    const template = await GenWellcomeTemplate(user);
+    const payload = {
+      subject: "Welcome aboard — let’s get your business running with Taply!",
+      to: user.email,
+      html: template,
+    };
+    await sendEmail(payload);
   }
   catch(error){
     log.err('❌ Error sending email:', error);
