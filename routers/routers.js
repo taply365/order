@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from "multer";
 import controller from '../controller/controller.js';
+import eventController from '../controller/eventController.js';
 
 
 const router = express.Router();
@@ -46,5 +47,8 @@ router.put("/kitchen-routing/update-orders-status/:status", controller.HandleUpd
 
 
 
+
+// EVENT //
+router.post("/event/booking", eventController.HandleNewBookingEvent); // handle booking event from booking service
 
 export default router;
