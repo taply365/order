@@ -4,7 +4,7 @@ import log from 'minhluanlu-color-log';
 import juice from 'juice';
 dotenv.config();
 
-import { GenWellcomeTemplate } from './genTemplate.js';
+import { GenWellcomeTemplate, GenConfirmReservationTemplate, GenCancelReservationTemplate } from './genTemplate.js';
 
 
 const APP_EMAIL = process.env.APP_EMAIL;
@@ -13,6 +13,7 @@ const SALES_EMAIL = process.env.SALES_EMAIL;
 const TEAM_EMAIL = process.env.TEAM_EMAIL;
 const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL;
 const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD;
+const ENV =process.env.ENV == "production";
 
 
 async function SendPdfEmail(data) {
@@ -164,9 +165,42 @@ async function SendSupportEmail(data) {
 }
 
 
+async function SendConfirmReservationEmail(booking) {
+  try {
+    const template = await GenConfirmReservationTemplate(booking);
+    const payload = {
+      subject: "Your reservation has been confirmed!",
+      to: ENV ? booking?.customerEmail : APP_EMAIL,
+      html: template,
+    };
+    await sendEmail(payload);
+  } catch (error) {
+    log.err('❌ Error sending confirmation email:', error);
+    throw error;
+  }
+};
+
+async function SendCancelReservationEmail(booking) {
+  try {
+    const template = await GenCancelReservationTemplate(booking);
+    const payload = {
+      subject: "Your reservation has been cancelled!",
+      to: ENV ? booking?.customerEmail : APP_EMAIL,
+      html: template,
+    };
+    await sendEmail(payload);
+  } catch (error) {
+    log.err('❌ Error sending cancellation email:', error);
+    throw error;
+  }
+}
+
+
 export {
   SendPdfEmail,
   SendReceiptEmail,
   SendWellcomeEmail,
-  SendSupportEmail
+  SendSupportEmail,
+  SendConfirmReservationEmail,
+  SendCancelReservationEmail
 }

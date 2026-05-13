@@ -50,5 +50,7 @@ router.put("/kitchen-routing/update-orders-status/:status", controller.HandleUpd
 
 // EVENT //
 router.post("/event/booking", eventController.HandleNewBookingEvent); // handle booking event from booking service
+router.post("/event/booking/confirm", eventController.HandleConfirmBookingEvent); // handle confirm booking event from booking service
+router.post("/event/booking/cancel", eventController.HandleCancelBookingEvent); // handle cancel booking event from booking service
 
 export default router;

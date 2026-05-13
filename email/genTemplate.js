@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import log from "minhluanlu-color-log";
-
+const APP_URL = process.env.APP_URL;
 
 // reconstruct __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -31,6 +31,76 @@ async function GenWellcomeTemplate(user) {
         log.err('❌ Error sending email:', error);
         throw error;
     }
+};
+
+
+async function GenConfirmReservationTemplate(booking) {
+    try {
+        let template = getTemplate('confirm_reservation.html');
+        const reservationLink = APP_URL ? `${APP_URL}/reservations?bookingId=${booking?.bookingId}` : "#";
+
+        const replacements = {
+            '{{customerName}}': booking?.customerName || 'Guest',
+            '{{bookingId}}': booking?.bookingId || '',
+            '{{businessId}}': booking?.businessId || '',
+            '{{tableId}}': booking?.tableId || '',
+            '{{guests}}': booking?.guests || '',
+            '{{startTime}}': booking?.startTime || '',
+            '{{endTime}}': booking?.endTime || '',
+            '{{status}}': booking?.status || 'confirmed',
+            '{{createdAt}}': booking?.createdAt || '',
+            '{{updatedAt}}': booking?.updatedAt || '',
+            '{{reservationLink}}': booking?.reservationLink || '#',
+            '{{businessName}}': booking?.businessName || 'Restaurant',
+            '{{year}}': new Date().getFullYear(),
+            "{{reservationLink}}": reservationLink || '#',
+        };
+
+        Object.keys(replacements).forEach((key) => {
+            template = template.replaceAll(key, replacements[key]);
+        });
+
+        return template;
+
+    } catch (error) {
+        log.err('❌ Error generating reservation email template:', error);
+        throw error;
+    }
 }
 
-export { GenWellcomeTemplate };
+
+async function GenCancelReservationTemplate(booking) {
+    try {
+        let template = getTemplate('cancel_reservation.html');
+        const reservationLink = APP_URL ? `${APP_URL}/reservations?bookingId=${booking?.bookingId}` : "#";
+
+        const replacements = {
+            '{{customerName}}': booking?.customerName || 'Guest',
+            '{{bookingId}}': booking?.bookingId || '',
+            '{{businessId}}': booking?.businessId || '',
+            '{{tableId}}': booking?.tableId || '',
+            '{{guests}}': booking?.guests || '',
+            '{{startTime}}': booking?.startTime || '',
+            '{{endTime}}': booking?.endTime || '',
+            '{{status}}': booking?.status || 'confirmed',
+            '{{createdAt}}': booking?.createdAt || '',
+            '{{cancelledAt}}': booking?.updatedAt || '',
+            '{{reservationLink}}': booking?.reservationLink || '#',
+            '{{businessName}}': booking?.businessName || 'Restaurant',
+            '{{year}}': new Date().getFullYear(),
+            "{{reservationLink}}": reservationLink || '#',
+        };
+
+        Object.keys(replacements).forEach((key) => {
+            template = template.replaceAll(key, replacements[key]);
+        });
+
+        return template;
+
+    } catch (error) {
+        log.err('❌ Error generating reservation email template:', error);
+        throw error;
+    }
+}
+
+export { GenWellcomeTemplate, GenConfirmReservationTemplate, GenCancelReservationTemplate };

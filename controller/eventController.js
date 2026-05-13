@@ -1,7 +1,9 @@
-import { HandleNewBookingEvent } from '../eventHandler/booking.js';
+import { HandleNewBookingEvent , HandleConfirmBookingEvent, HandleCancelBookingEvent} from '../eventHandler/booking.js';
 
 const eventController = {
-    HandleNewBookingEvent
+    HandleNewBookingEvent,
+    HandleConfirmBookingEvent,
+    HandleCancelBookingEvent
 }
 
 

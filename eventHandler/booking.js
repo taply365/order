@@ -1,6 +1,7 @@
 import { RunQuery } from '../db/db.js';
 import log from "minhluanlu-color-log";
 import { getIO } from "../socketIO/socket.js";
+import { SendConfirmReservationEmail, SendCancelReservationEmail } from '../email/index.js';
 
 
 
@@ -44,15 +45,59 @@ async function HandleNewBookingEvent(req, res) {
       message: "Booking event received successfully",
     });
   } catch (error) {
-    log.error("Error handling booking event:", error);
+    console.error("Error handling booking event:", error);
 
     return res.status(500).json({
       success: false,
       message: "Failed to handle booking event",
     });
   }
+};
+
+
+
+async function  HandleConfirmBookingEvent(req, res) {
+  try{
+    const booking = req.body;
+    console.log("Received confirm booking event:", booking);
+    await SendConfirmReservationEmail(booking);
+    return res.status(200).json({
+      success: true,
+      message: "Booking confirmed and email sent successfully",
+    });
+  }
+  catch(error){
+  console.error("Error handling confirm booking event:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to handle confirm booking event",
+    });
+  }
 }
 
+
+async function  HandleCancelBookingEvent(req, res) {
+  try{
+    const booking = req.body;
+    console.log("Received cancel booking event:", booking);
+    await SendCancelReservationEmail(booking);
+    return res.status(200).json({
+      success: true,
+      message: "Booking cancelled and email sent successfully",
+    });
+  }
+  catch(error){
+  console.error("Error handling cancel booking event:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to handle cancel booking event",
+    });
+  }
+}
+
+
 export {
-    HandleNewBookingEvent
+    HandleNewBookingEvent,
+    HandleConfirmBookingEvent,
+    HandleCancelBookingEvent
 }
