@@ -21,7 +21,13 @@ async function ClearSession(businessId) {
 async function CreateReceiptSession(orderId, businessId) {
     try{
         await ClearSession(businessId);
-        const insert = await RunQuery("INSERT INTO receiptSessions (orderId, businessId) VALUES (?, ?)", [orderId, businessId]);
+        const business = await RunQuery(`SELECT internalId FROM businesses WHERE id = ?`, [businessId]);
+        if(business.length === 0){
+            log.error(`Business with id ${businessId} not found`);
+            return false;
+        }
+        const internalId = business[0].internalId;
+        const insert = await RunQuery("INSERT INTO receiptSessions (orderId, businessId, internalId) VALUES (?, ?, ?)", [orderId, businessId, internalId]);
         return insert.affectedRows > 0;
     }
     catch(err){
@@ -31,9 +37,9 @@ async function CreateReceiptSession(orderId, businessId) {
 }
 
 
-async function GetReceiptSession(businessId) {
+async function GetReceiptSession(businessId, code) {
     try{
-        const session = await RunQuery("SELECT * FROM receiptSessions WHERE businessId = ?", [businessId]);
+        const session = await RunQuery("SELECT * FROM receiptSessions WHERE businessId = ? AND internalId = ?", [businessId, code]);
         if(session.length > 0){
             log.debug(`Found receipt session for businessId: ${businessId}`);
             await ClearSession(businessId); // Clear session after retrieval to prevent reuse
@@ -41,7 +47,7 @@ async function GetReceiptSession(businessId) {
         return session.length > 0 ? session[0] : null;
     }
     catch(err){
-        log.error(err);
+        log.err(err);
         return null;
     }
 }

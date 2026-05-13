@@ -5,7 +5,7 @@ import { ClearSession, CreateReceiptSession, GetReceiptSession } from "../receip
 import { RunQuery } from "../db/db.js";
 
 
-
+// Receipts related handlers
 async function HandleSendReceiptToEmail(req, res) {
   try {
     const order = req.body;
@@ -21,8 +21,7 @@ async function HandleSendReceiptToEmail(req, res) {
     // 3. Send email with attachment
     await SendReceiptEmail({
       to: order.email,
-      subject: `Receipt #${order.id}`,
-      html: `<p>Your receipt is attached.</p>`,
+      subject: `Payment Receipt • Order #${order.orderNumber || order.id}`,
       attachments: [
         {
           filename: `receipt-${order.id}.pdf`,
@@ -30,6 +29,7 @@ async function HandleSendReceiptToEmail(req, res) {
           contentType: "application/pdf",
         },
       ],
+      order, // Pass the order data for generating the email content
     });
 
     log.debug(`Receipt email sent to ${order.email} for order #${order.id}`);
@@ -92,10 +92,12 @@ async function HandleGetReceiptSession(req, res) {
     return res.status(400).json({ success: false, message: "Missing businessId or code" });
   }
   try {
-    const session = await GetReceiptSession(businessId);
+    const session = await GetReceiptSession(businessId, code);
     if (session) {
-      res.json({ success: true, message: "Session found", data: session });
+      log.debug("Receipt session found for businessId:", businessId);
+      res.status(200).json({ success: true, message: "Session found", data: session });
     } else {
+      log.err("No receipt session found for businessId:", businessId);
       res.status(404).json({ success: false, message: "Session not found" });
     }
   } catch (err) {

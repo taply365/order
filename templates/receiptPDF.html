@@ -1,0 +1,525 @@
+<!-- Full professional receipt template -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Receipt</title>
+
+  <style>
+    * { box-sizing: border-box; min-width: 0; }
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      background: #f3f4f6;
+      padding: 32px 12px;
+      color: #111827;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .receipt {
+      width: min(420px, 100%);
+      margin: 0 auto;
+      background: #ffffff;
+      color: #111827;
+      padding: 28px 24px;
+      border-radius: 18px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .receiptHeader {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .logo {
+      display: block;
+      max-width: 110px;
+      max-height: 46px;
+      object-fit: contain;
+      margin: 0 auto 10px;
+    }
+
+    .brand {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      margin-bottom: 4px;
+    }
+
+    .subtle {
+      color: #6b7280;
+      font-size: 12px;
+    }
+
+    .hr,
+    .hrDashed {
+      border-top: 1px solid #e5e7eb;
+      margin: 18px 0;
+    }
+
+    .hrDashed {
+      border-top-style: dashed;
+    }
+
+    .metaGrid {
+      display: grid;
+      gap: 9px;
+    }
+
+    .metaRow {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .metaKey {
+      color: #6b7280;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .metaVal {
+      color: #111827;
+      text-align: right;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .mono {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .statusBadge {
+      display: inline-flex;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #dcfce7;
+      color: #166534 !important;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .itemsHeader,
+    .itemRow {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 42px 76px 82px;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .itemsHeader {
+      color: #6b7280;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .items {
+      display: grid;
+      gap: 10px;
+    }
+
+    .itemRow {
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .itemName {
+      font-weight: 650;
+      word-break: break-word;
+    }
+
+    .right {
+      text-align: right;
+    }
+
+    .empty {
+      padding: 14px 0;
+      color: #9ca3af;
+      text-align: center;
+    }
+
+    .totalRow {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px;
+      margin-top: 8px;
+      border-radius: 14px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+
+    .totalLabel,
+    .totalValue {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.4px;
+    }
+
+    .notes {
+      margin-top: 6px;
+      word-break: break-word;
+    }
+
+    .notesTitle {
+      margin-bottom: 6px;
+      color: #111827;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .footer {
+      margin-top: 22px;
+      padding-top: 14px;
+      border-top: 1px solid #e5e7eb;
+      text-align: center;
+    }
+
+    .center {
+      font-weight: 800;
+      letter-spacing: 0.4px;
+    }
+
+    .centerSmall {
+      margin-top: 3px;
+      color: #6b7280;
+      font-size: 11px;
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+
+      .receipt {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+      }
+    }
+
+    @media (max-width: 420px) {
+      body { padding: 10px; }
+
+      .receipt {
+        padding: 22px 16px;
+        font-size: 12px;
+      }
+
+      .itemsHeader,
+      .itemRow {
+        grid-template-columns: minmax(0, 1fr) 34px 64px 70px;
+        gap: 5px;
+      }
+
+      .brand { font-size: 18px; }
+
+      .totalLabel,
+      .totalValue {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="receipt" aria-label="Receipt">
+    <header class="receiptHeader">
+      <img id="logo" class="logo" src="" alt="Business logo" />
+      <div class="brand" id="brand"></div>
+      <div class="subtle" id="businessAddress"></div>
+      <div class="subtle" id="businessPhone"></div>
+    </header>
+
+    <div class="hr"></div>
+
+    <section class="metaGrid">
+      <div class="metaRow">
+        <span class="metaKey">Order No.</span>
+        <span class="metaVal mono" id="metaOrderNr"></span>
+      </div>
+
+      <div class="metaRow">
+        <span class="metaKey">Receipt ID</span>
+        <span class="metaVal mono" id="metaOrder"></span>
+      </div>
+
+      <div class="metaRow">
+        <span class="metaKey">Business ID</span>
+        <span class="metaVal mono" id="metaBusinessId"></span>
+      </div>
+
+      <div class="metaRow">
+        <span class="metaKey">Status</span>
+        <span class="metaVal statusBadge" id="metaStatus"></span>
+      </div>
+
+      <div class="metaRow">
+        <span class="metaKey">Created</span>
+        <span class="metaVal" id="metaCreated"></span>
+      </div>
+
+      <div class="metaRow">
+        <span class="metaKey">Updated</span>
+        <span class="metaVal" id="metaUpdated"></span>
+      </div>
+    </section>
+
+    <div class="hrDashed"></div>
+
+    <section>
+      <div class="itemsHeader">
+        <span>Item</span>
+        <span class="right">Qty</span>
+        <span class="right">Price</span>
+        <span class="right">Total</span>
+      </div>
+
+      <div class="items" id="items"></div>
+      <div class="empty" id="emptyItems" style="display:none;">No line items</div>
+    </section>
+
+    <div class="hrDashed"></div>
+
+    <div class="totalRow">
+      <span class="totalLabel">Total</span>
+      <span class="totalValue mono" id="totalValue"></span>
+    </div>
+
+    <div class="metaRow" style="margin-top:10px;">
+      <span class="metaKey">Tax / VAT 25%</span>
+      <span class="metaVal mono" id="taxValue"></span>
+    </div>
+
+    <div class="hrDashed"></div>
+
+    <section class="metaGrid">
+      <div class="itemsHeader">
+        <span>Payment</span>
+      </div>
+
+      <div class="metaRow">
+        <span class="metaKey">Payment ID</span>
+        <span class="metaVal" id="paymentId"></span>
+      </div>
+
+      <div class="metaRow">
+        <span class="metaKey">Customer ID</span>
+        <span class="metaVal" id="customerId"></span>
+      </div>
+    </section>
+
+    <div id="notesBlock" style="display:none;">
+      <div class="hr"></div>
+      <section class="notes">
+        <div class="notesTitle">Notes</div>
+        <div class="subtle" id="notes"></div>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <div class="center">Powered by</div>
+      <div class="centerSmall">Taply</div>
+    </footer>
+  </div>
+
+  <script>
+    const order = __ORDER_JSON__;
+
+    function formatMoney(amount, currency = "DKK") {
+      const value = Number(amount);
+      if (!Number.isFinite(value)) return "—";
+
+      try {
+        return new Intl.NumberFormat(undefined, {
+          style: "currency",
+          currency: currency === "Kr" ? "DKK" : currency,
+          maximumFractionDigits: 2,
+        }).format(value);
+      } catch {
+        return `${value.toFixed(2)} ${currency || ""}`.trim();
+      }
+    }
+
+    function formatDate(value) {
+      if (!value) return "—";
+
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return "—";
+
+      return new Intl.DateTimeFormat(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(d);
+    }
+
+    function normalizeItems(order) {
+      const possibleItems =
+        order?.data?.items ??
+        order?.items ??
+        (Array.isArray(order?.data) ? order.data : []);
+
+      if (!Array.isArray(possibleItems)) return [];
+
+      return possibleItems.map((item, index) => {
+        const qty = Number(item?.qty ?? item?.quantity ?? 1);
+        const price = Number(item?.price ?? item?.data?.[0]?.price ?? 0);
+
+        const total =
+          item?.price != null
+            ? Number(item.price) * (item?.qty ?? item?.quantity ?? 1)
+            : Number.isFinite(qty) && Number.isFinite(price)
+              ? qty * price
+              : null;
+
+        const subName = item?.data?.[0]?.name || "";
+
+        return {
+          id: item?.id ?? `${index}-${item?.name ?? item?.title ?? "item"}`,
+          name: item?.name ?? item?.title ?? `Item ${index + 1}`,
+          subName,
+          qty: Number.isFinite(qty) && qty > 0 ? qty : 1,
+          price: Number.isFinite(price) ? price : null,
+          total: Number.isFinite(total) ? total : null,
+        };
+      });
+    }
+
+    function computeTotal(order, items) {
+      if (order?.totalPrice != null && Number.isFinite(Number(order.totalPrice))) {
+        return Number(order.totalPrice);
+      }
+
+      if (!items.length) return null;
+
+      const sum = items.reduce((acc, item) => acc + (item.total ?? 0), 0);
+      return Number.isFinite(sum) ? sum : null;
+    }
+
+    function setText(id, value) {
+      document.getElementById(id).textContent = value;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function renderReceipt(order) {
+      const items = normalizeItems(order);
+      const currency = order?.currency ?? order?.data?.currency ?? "DKK";
+      const computedTotal = computeTotal(order, items);
+
+      const businessName = order?.businessName ?? "Business";
+      const businessAddress =
+        order?.businessAddress ??
+        order?.data?.businessAddress ??
+        "—";
+
+      const businessPhone =
+        order?.businessPhone ??
+        order?.data?.businessPhone ??
+        "—";
+
+      const notes = order?.notes ?? order?.data?.notes ?? "";
+      const status = "paid";
+
+      setText("brand", businessName);
+      setText("businessAddress", businessAddress);
+      setText("businessPhone", businessPhone);
+      setText("metaOrderNr", `#${order?.orderNumber ?? "—"}`);
+      setText("metaOrder", `#${order?.id ?? "—"}`);
+      setText("metaBusinessId", order?.businessId ?? "—");
+      setText("metaCreated", formatDate(order?.createdAt));
+      setText("metaUpdated", formatDate(order?.updatedAt));
+      setText("totalValue", computedTotal == null ? "—" : formatMoney(computedTotal, currency));
+      setText("taxValue", computedTotal == null ? "—" : formatMoney(computedTotal * 0.25, currency));
+      setText("paymentId", order?.paymentIntentId || "—");
+
+      const customerId = order?.customerId
+        ? order.customerId.length > 20
+          ? order.customerId.slice(0, 20) + "..."
+          : order.customerId
+        : "—";
+
+      setText("customerId", customerId);
+
+      const logo = document.getElementById("logo");
+
+      if (order?.businessLogo) {
+        logo.src = order.businessLogo;
+        logo.alt = `${businessName} logo`;
+        logo.style.display = "block";
+      } else {
+        logo.style.display = "none";
+      }
+
+      const statusEl = document.getElementById("metaStatus");
+      statusEl.textContent = status;
+
+      const itemsWrap = document.getElementById("items");
+      const emptyEl = document.getElementById("emptyItems");
+
+      itemsWrap.innerHTML = "";
+
+      if (items.length) {
+        emptyEl.style.display = "none";
+
+        items.forEach((item) => {
+          const row = document.createElement("div");
+          row.className = "itemRow";
+
+          row.innerHTML = `
+            <span class="itemName">${escapeHtml(
+              `${item.name}${item.subName ? ` - ${item.subName}` : ""}`
+            )}</span>
+            <span class="right mono">${item.qty}x</span>
+            <span class="right mono">${item.price == null ? "—" : escapeHtml(formatMoney(item.price, currency))}</span>
+            <span class="right mono">${item.total == null ? "—" : escapeHtml(formatMoney(item.total, currency))}</span>
+          `;
+
+          itemsWrap.appendChild(row);
+        });
+      } else {
+        emptyEl.style.display = "block";
+      }
+
+      const notesBlock = document.getElementById("notesBlock");
+
+      if (notes) {
+        notesBlock.style.display = "block";
+        setText("notes", String(notes));
+      } else {
+        notesBlock.style.display = "none";
+      }
+    }
+
+    renderReceipt(order);
+    window.renderCustomReceipt = renderReceipt;
+  </script>
+</body>
+</html>

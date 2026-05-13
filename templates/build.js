@@ -11,7 +11,7 @@ function safeJsonForHtml(data) {
 }
 
 async function buildReceiptHtml(order) {
-  const htmlPath = path.join(__dirname, "./receipt.html");
+  const htmlPath = path.join(__dirname, "./receiptPDF.html");
 
   let html = await fs.readFile(htmlPath, "utf8");
 

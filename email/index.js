@@ -4,7 +4,7 @@ import log from 'minhluanlu-color-log';
 import juice from 'juice';
 dotenv.config();
 
-import { GenWellcomeTemplate, GenConfirmReservationTemplate, GenCancelReservationTemplate } from './genTemplate.js';
+import { GenWellcomeTemplate, GenConfirmReservationTemplate, GenCancelReservationTemplate, GenReceiptTemplate } from './genTemplate.js';
 
 
 const APP_EMAIL = process.env.APP_EMAIL;
@@ -94,8 +94,9 @@ async function SendReceiptEmail(data) {
     },
   });
 
-  const { subject, to, html, attachments } = data;
+  const { subject, to, attachments, order } = data;
 
+  const html = await GenReceiptTemplate(order); // Generate HTML content for the receipt email
   const mailOptions = {
     from: SALES_EMAIL,
     to,

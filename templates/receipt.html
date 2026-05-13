@@ -3,538 +3,149 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Receipt</title>
-  <style>
-    * { box-sizing: border-box; min-width: 0; }
-    html, body { margin: 0; padding: 0; }
-    body {
-      background:
-        radial-gradient(circle at top, #f5f5f4 0, #e7e5e4 45%, #d6d3d1 100%);
-      padding: 24px 12px;
-      color: #111;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    }
-
-    .receipt {
-      position: relative;
-      width: min(360px, 100%);
-      margin: 0 auto;
-      background: #fffefc;
-      color: #111;
-      padding: 18px 14px 20px;
-      border: 1px solid #d6d3d1;
-      box-shadow:
-        0 2px 6px rgba(0,0,0,0.06),
-        0 18px 32px rgba(0,0,0,0.10);
-      font-family:
-        "Courier New",
-        Courier,
-        ui-monospace,
-        SFMono-Regular,
-        Menlo,
-        Monaco,
-        Consolas,
-        monospace;
-      font-size: 12px;
-      line-height: 1.35;
-      overflow: hidden;
-    }
-
-    .receipt::before,
-    .receipt::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      width: 100%;
-      height: 10px;
-      background:
-        radial-gradient(circle at 10px 0, transparent 10px, #fffefc 10.5px) repeat-x;
-      background-size: 20px 10px;
-      z-index: 2;
-    }
-
-    .receipt::before {
-      top: -1px;
-      transform: rotate(180deg);
-      border-bottom: 1px solid #e7e5e4;
-    }
-
-    .receipt::after {
-      bottom: -1px;
-      border-top: 1px solid #e7e5e4;
-    }
-
-    .receiptHeader {
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
-    .logo {
-      display: block;
-      max-width: 92px;
-      max-height: 34px;
-      object-fit: contain;
-      margin: 0 auto 6px;
-      filter: grayscale(100%) contrast(115%);
-    }
-
-    .brand {
-      font-size: 16px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      margin-bottom: 2px;
-    }
-
-    .subtle {
-      color: #57534e;
-      font-size: 11px;
-      line-height: 1.3;
-    }
-
-    .hr {
-      height: 0;
-      border-top: 1px dashed #78716c;
-      margin: 10px 0;
-      opacity: 0.9;
-    }
-
-    .hrDashed {
-      height: 0;
-      border-top: 1px dashed #78716c;
-      margin: 10px 0;
-      opacity: 0.9;
-    }
-
-    .metaGrid {
-      display: grid;
-      gap: 5px;
-    }
-
-    .metaRow {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .metaKey {
-      color: #57534e;
-      white-space: nowrap;
-    }
-
-    .metaVal {
-      color: #111;
-      text-align: right;
-      word-break: break-word;
-    }
-
-    .itemsHeader,
-    .itemRow {
-      display: grid;
-      grid-template-columns: minmax(0,1fr) 34px 68px 76px;
-      gap: 6px;
-      width: 100%;
-      align-items: start;
-    }
-
-    .itemsHeader {
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      padding-bottom: 2px;
-    }
-
-    .items {
-      display: grid;
-      gap: 6px;
-    }
-
-    .itemName {
-      white-space: normal;
-      word-break: break-word;
-      text-transform: uppercase;
-    }
-
-    .right {
-      text-align: right;
-    }
-
-    .mono {
-      font-variant-numeric: tabular-nums;
-    }
-
-    .empty {
-      padding: 8px 0;
-      color: #57534e;
-      text-align: center;
-    }
-
-    .totalRow {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      font-weight: 700;
-      margin-top: 2px;
-      padding-top: 2px;
-    }
-
-    .totalLabel,
-    .totalValue {
-      font-size: 15px;
-      letter-spacing: 0.6px;
-    }
-
-    .notes {
-      margin-top: 4px;
-      word-break: break-word;
-    }
-
-    .notesTitle {
-      margin-bottom: 4px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-
-    .footer {
-      margin-top: 14px;
-      padding-top: 4px;
-    }
-
-    .center {
-      text-align: center;
-      font-weight: 700;
-      letter-spacing: 0.8px;
-    }
-
-    .centerSmall {
-      margin-top: 3px;
-      text-align: center;
-      color: #57534e;
-      font-size: 10px;
-    }
-
-    .statusBadge {
-      display: inline-block;
-      padding: 0;
-      border-radius: 0;
-      min-width: unset;
-      max-width: 100%;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.4px;
-      background: transparent !important;
-      color: #111 !important;
-      border: none !important;
-    }
-
-    .statusDefault::before { content: "[ "; }
-    .statusDefault::after { content: " ]"; }
-
-    .statusPENDING::before,
-    .statusCONFIRMED::before,
-    .statusPREPARING::before,
-    .statusREADY::before,
-    .statusCOMPLETED::before,
-    .statusCANCELLED::before,
-    .statusREJECTED::before { content: "[ "; }
-
-    .statusPENDING::after,
-    .statusCONFIRMED::after,
-    .statusPREPARING::after,
-    .statusREADY::after,
-    .statusCOMPLETED::after,
-    .statusCANCELLED::after,
-    .statusREJECTED::after { content: " ]"; }
-
-    @media print {
-      body {
-        background: #fff;
-        padding: 0;
-      }
-
-      .receipt {
-        width: 100%;
-        max-width: 100%;
-        margin: 0;
-        box-shadow: none;
-        border: none;
-      }
-    }
-
-    @media (max-width: 420px) {
-      body { padding: 10px; }
-
-      .receipt {
-        width: 100%;
-        padding: 16px 12px 18px;
-        font-size: 11px;
-      }
-
-      .itemsHeader,
-      .itemRow {
-        grid-template-columns: minmax(0,1fr) 28px 58px 64px;
-        gap: 4px;
-      }
-
-      .brand { font-size: 15px; }
-      .totalLabel, .totalValue { font-size: 14px; }
-    }
-  </style>
+  <title>Receipt Email</title>
 </head>
-<body>
-  <div class="receipt" aria-label="Receipt">
-    <header class="receiptHeader">
-      <img id="logo" class="logo" src="" alt="Business logo" />
-      <div class="brand" id="brand"></div>
-      <div class="subtle" id="businessAddress"></div>
-      <div class="subtle" id="businessPhone"></div>
-    </header>
 
-    <div class="hr"></div>
+<body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;color:#111827;">
 
-    <section class="metaGrid">
-      <div class="metaRow">
-        <span class="metaKey">ID</span>
-        <span class="metaVal mono" id="metaOrder"></span>
+  <div style="max-width:560px;margin:0 auto;padding:32px 16px;">
+
+    <div style="
+      background:#ffffff;
+      border:1px solid #e5e7eb;
+      border-radius:16px;
+      padding:32px 28px;
+      box-shadow:0 8px 24px rgba(15,23,42,0.06);
+    ">
+
+      <!-- Logo -->
+      <div style="text-align:center;margin-bottom:24px;">
+        <img
+          src="{{businessLogo}}"
+          alt="Logo"
+          style="max-width:120px;height:auto;"
+        />
       </div>
 
-      <div class="metaRow">
-        <span class="metaKey">BUSINESS ID</span>
-        <span class="metaVal mono" id="metaBusinessId"></span>
+      <!-- Heading -->
+      <h1 style="
+        margin:0 0 12px;
+        font-size:24px;
+        line-height:1.3;
+        color:#111827;
+        text-align:center;
+      ">
+        Your Receipt is Ready
+      </h1>
+
+      <!-- Intro -->
+      <p style="
+        margin:0 0 22px;
+        font-size:15px;
+        line-height:1.7;
+        color:#4b5563;
+        text-align:center;
+      ">
+        Thank you for your purchase.
+        Your receipt has been attached to this email as a PDF.
+      </p>
+
+      <!-- Order Box -->
+      <div style="
+        background:#f9fafb;
+        border:1px solid #e5e7eb;
+        border-radius:12px;
+        padding:18px;
+        margin-bottom:24px;
+      ">
+
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+
+          <tr>
+            <td style="
+              font-size:12px;
+              color:#6b7280;
+              text-transform:uppercase;
+              letter-spacing:0.5px;
+              padding-bottom:6px;
+            ">
+              Order Number
+            </td>
+
+            <td align="right" style="
+              font-size:18px;
+              font-weight:700;
+              color:#111827;
+            ">
+              #{{orderNumber}}
+            </td>
+          </tr>
+
+          <tr>
+            <td style="
+              font-size:12px;
+              color:#6b7280;
+              text-transform:uppercase;
+              letter-spacing:0.5px;
+              padding-top:10px;
+            ">
+              Amount
+            </td>
+
+            <td align="right" style="
+              font-size:16px;
+              font-weight:600;
+              color:#111827;
+              padding-top:10px;
+            ">
+              {{amount}} {{currency}}
+            </td>
+          </tr>
+
+        </table>
       </div>
 
-      <div class="metaRow">
-        <span class="metaKey">STATUS</span>
-        <span class="metaVal statusBadge statusDefault" id="metaStatus"></span>
+      <!-- Message -->
+      <p style="
+        margin:0 0 24px;
+        font-size:14px;
+        line-height:1.7;
+        color:#4b5563;
+      ">
+        Please keep this receipt for your records.
+        If you have any questions regarding your order or payment,
+        feel free to contact our support team.
+      </p>
+
+      <!-- Footer -->
+      <div style="
+        border-top:1px solid #e5e7eb;
+        padding-top:20px;
+      ">
+        <p style="
+          margin:0;
+          font-size:14px;
+          line-height:1.7;
+          color:#374151;
+        ">
+          Best regards,<br />
+          <strong>{{businessName}}</strong>
+        </p>
       </div>
 
-      <div class="metaRow">
-        <span class="metaKey">CREATED</span>
-        <span class="metaVal" id="metaCreated"></span>
-      </div>
-
-      <div class="metaRow">
-        <span class="metaKey">UPDATED</span>
-        <span class="metaVal" id="metaUpdated"></span>
-      </div>
-    </section>
-
-    <div class="hrDashed"></div>
-
-    <section>
-      <div class="itemsHeader">
-        <span>ITEM</span>
-        <span class="right">QTY</span>
-        <span class="right">PRICE</span>
-        <span class="right">TOTAL</span>
-      </div>
-
-      <div class="hr"></div>
-
-      <div class="items" id="items"></div>
-      <div class="empty" id="emptyItems" style="display:none;">NO LINE ITEMS</div>
-    </section>
-
-    <div class="hrDashed"></div>
-
-    <div class="totalRow">
-      <span class="totalLabel">TOTAL</span>
-      <span class="totalValue mono" id="totalValue"></span>
     </div>
 
-    <div class="metaRow" style="margin-top:6px;">
-      <span class="metaKey">TAX / VAT (25%)</span>
-      <span class="metaVal mono" id="taxValue"></span>
-    </div>
+    <!-- Bottom -->
+    <p style="
+      margin:16px 0 0;
+      text-align:center;
+      font-size:12px;
+      color:#9ca3af;
+    ">
+      © {{year}} {{businessName}}. All rights reserved.
+    </p>
 
-    <div class="hrDashed"></div>
-
-    <section class="metaGrid">
-      <div class="itemsHeader">
-        <span>PAYMENT</span>
-      </div>
-
-      <div class="metaRow">
-        <span class="metaKey">PAYMENT ID</span>
-        <span class="metaVal" id="paymentId"></span>
-      </div>
-      <div class="metaRow">
-        <span class="metaKey">CUSTOMER ID</span>
-        <span class="metaVal" id="customerId"></span>
-      </div>
-    </section>
-
-    <div id="notesBlock" style="display:none;">
-      <div class="hr"></div>
-      <section class="notes">
-        <div class="notesTitle">NOTES</div>
-        <div class="subtle" id="notes"></div>
-      </section>
-    </div>
-
-    <footer class="footer">
-      <div class="center">Powered by</div>
-      <div class="centerSmall">Taply</div>
-    </footer>
   </div>
 
-  <script>
-    const order = __ORDER_JSON__;
-
-    function formatMoney(amount, currency = "USD") {
-      const value = Number(amount);
-      if (!Number.isFinite(value)) return "—";
-      try {
-        return new Intl.NumberFormat(undefined, {
-          style: "currency",
-          currency,
-          maximumFractionDigits: 2,
-        }).format(value);
-      } catch {
-        return `${value.toFixed(2)} ${currency || ""}`.trim();
-      }
-    }
-
-    function formatDate(value) {
-      if (!value) return "—";
-      const d = new Date(value);
-      if (Number.isNaN(d.getTime())) return "—";
-      return new Intl.DateTimeFormat(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit"
-      }).format(d);
-    }
-
-    function normalizeItems(order) {
-      const possibleItems =
-        order?.data?.items ??
-        order?.items ??
-        (Array.isArray(order?.data) ? order.data : []);
-
-      if (!Array.isArray(possibleItems)) return [];
-
-      return possibleItems.map((item, index) => {
-        const qty = Number(item?.qty ?? item?.quantity ?? 1);
-        const price = Number(item?.price ?? item?.data?.[0]?.price ?? 0);
-        const total =
-          item?.price != null
-            ? Number(item.price) * (item?.qty ?? item?.quantity ?? 1)
-            : Number.isFinite(qty) && Number.isFinite(price)
-            ? qty * price
-            : null;
-        const subName = item?.data?.[0]?.name || "";
-        return {
-          id: item?.id ?? `${index}-${item?.name ?? item?.title ?? "item"}`,
-          name: item?.name ?? item?.title ?? `Item ${index + 1}`,
-          subName,
-          qty: Number.isFinite(qty) && qty > 0 ? qty : 1,
-          price: Number.isFinite(price) ? price : null,
-          total: Number.isFinite(total) ? total : null,
-        };
-      });
-    }
-
-    function computeTotal(order, items) {
-      if (order?.totalPrice != null && Number.isFinite(Number(order.totalPrice))) {
-        return Number(order.totalPrice);
-      }
-      if (!items.length) return null;
-      const sum = items.reduce((acc, item) => acc + (item.total ?? 0), 0);
-      return Number.isFinite(sum) ? sum : null;
-    }
-
-    function setText(id, value) {
-      document.getElementById(id).textContent = value;
-    }
-
-    function escapeHtml(str) {
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-    }
-
-    function renderReceipt(order) {
-      const items = normalizeItems(order);
-      const currency = order?.currency ?? order?.data?.currency ?? "Kr";
-      const computedTotal = computeTotal(order, items);
-
-      const businessName = order?.businessName ?? "Business";
-      const businessAddress = order?.businessAddress ?? order?.data?.businessAddress ?? "—";
-      const businessPhone = order?.businessPhone ?? order?.data?.businessPhone ?? "—";
-      const notes = order?.notes ?? order?.data?.notes ?? "";
-      const status = String(order?.status ?? "—").toUpperCase();
-
-      setText("brand", businessName);
-      setText("businessAddress", businessAddress);
-      setText("businessPhone", businessPhone);
-      setText("metaOrder", `#${order?.id ?? "—"}`);
-      setText("metaBusinessId", order?.businessId ?? "—");
-      setText("metaCreated", formatDate(order?.createdAt));
-      setText("metaUpdated", formatDate(order?.updatedAt));
-      setText("totalValue", computedTotal == null ? "—" : formatMoney(computedTotal, currency));
-      setText("taxValue", computedTotal == null ? "—" : formatMoney(computedTotal * 0.25, currency));
-      setText("paymentId", order?.paymentIntentId || "—");
-
-      const customerId = order?.customerId
-        ? order.customerId.length > 20
-          ? order.customerId.slice(0, 20) + "..."
-          : order.customerId
-        : "—";
-      setText("customerId", customerId);
-
-      const logo = document.getElementById("logo");
-      if (order?.businessLogo) {
-        logo.src = order.businessLogo;
-        logo.alt = `${businessName} logo`;
-        logo.style.display = "block";
-      } else {
-        logo.style.display = "none";
-      }
-
-      const statusEl = document.getElementById("metaStatus");
-      statusEl.textContent = status;
-      statusEl.className = `metaVal statusBadge ${document.querySelector(`.status${status}`) ? `status${status}` : "statusDefault"}`;
-
-      const itemsWrap = document.getElementById("items");
-      const emptyEl = document.getElementById("emptyItems");
-      itemsWrap.innerHTML = "";
-
-      if (items.length) {
-        emptyEl.style.display = "none";
-        items.forEach((item) => {
-          const row = document.createElement("div");
-          row.className = "itemRow";
-          row.innerHTML = `
-            <span class="itemName">${escapeHtml(
-              `${item.name}${item.subName ? ` - ${item.subName}` : ""}`.toUpperCase()
-            )}</span>
-            <span class="right mono">${item.qty}x</span>
-            <span class="right mono">${item.price == null ? "—" : escapeHtml(formatMoney(item.price, currency))}</span>
-            <span class="right mono">${item.total == null ? "—" : escapeHtml(formatMoney(item.total, currency))}</span>
-          `;
-          itemsWrap.appendChild(row);
-        });
-      } else {
-        emptyEl.style.display = "block";
-      }
-
-      const notesBlock = document.getElementById("notesBlock");
-      if (notes) {
-        notesBlock.style.display = "block";
-        setText("notes", String(notes));
-      } else {
-        notesBlock.style.display = "none";
-      }
-    }
-
-    renderReceipt(order);
-    window.renderCustomReceipt = renderReceipt;
-  </script>
 </body>
 </html>

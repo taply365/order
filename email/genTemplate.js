@@ -103,4 +103,29 @@ async function GenCancelReservationTemplate(booking) {
     }
 }
 
-export { GenWellcomeTemplate, GenConfirmReservationTemplate, GenCancelReservationTemplate };
+
+async function GenReceiptTemplate(order) {
+  try {
+    let template = getTemplate('receipt.html');
+
+    const replacements = {
+      '{{businessLogo}}': order?.businessLogo || '',
+      '{{orderNumber}}': order?.orderNumber || order?.id || '',
+      '{{amount}}': Number(order?.totalPrice || 0).toFixed(2),
+      '{{currency}}': order?.currency ?? order?.data?.currency ?? "",
+      '{{businessName}}': order?.businessName || 'Restaurant',
+      '{{year}}': new Date().getFullYear(),
+    };
+
+    for (const [key, value] of Object.entries(replacements)) {
+      template = template.replaceAll(key, String(value));
+    }
+
+    return template;
+  } catch (error) {
+    log.err('❌ Error generating receipt email template:', error);
+    throw error;
+  }
+}
+
+export { GenWellcomeTemplate, GenConfirmReservationTemplate, GenCancelReservationTemplate, GenReceiptTemplate };

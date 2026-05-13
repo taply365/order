@@ -69,6 +69,7 @@ app.use("/production/authenticate", authRateLimit);
 app.use("/gen-guest-token", authRateLimit);
 app.use("/send-support-email", authRateLimit);
 app.use("/order/receipt-session", receiptRateLimit);
+app.use("/order", receiptRateLimit);
 
 app.post('/send-support-email', handleSendSupportEmail); // 👈 new route for support emails
 
