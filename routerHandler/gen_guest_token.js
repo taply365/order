@@ -4,7 +4,8 @@ import dotenv from "dotenv";
 dotenv.config();
 import setCookie from "../cookies/cookie.js";
 
-
+const HTTPS_SECURE = process.env.ENV !== "local";
+const DOMAIN = process.env.APP_URL;
 
 async function genGuestToken(req, res) {
     try {
@@ -32,10 +33,10 @@ async function genGuestToken(req, res) {
 
         setCookie(res, refreshToken, {
             httpOnly: true,
-            secure: false,        // must be false on local http
-            sameSite: "lax",      // easier for local dev
+            secure: HTTPS_SECURE,
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000,
-            // no domain on localhost
+            domain: DOMAIN
         });
 
         log.debug(`🔑✅ Guest token generated successfully.`);
