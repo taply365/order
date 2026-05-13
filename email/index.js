@@ -182,6 +182,7 @@ async function SendConfirmReservationEmail(booking) {
 
 async function SendCancelReservationEmail(booking) {
   try {
+    if(!ENV) return true; // Skip sending email in development environment
     const template = await GenCancelReservationTemplate(booking);
     const payload = {
       subject: "Your reservation has been cancelled!",
