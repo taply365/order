@@ -20,7 +20,7 @@ const app = express();
 app.set("trust proxy", 1);
 const homePagePath = fileURLToPath(new URL("./templates/index.html", import.meta.url));
 const apiRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 10 * 60 * 1000,
   limit: 100,
   standardHeaders: true,
   legacyHeaders: false,
@@ -45,8 +45,8 @@ app.use(cors({
 app.use(apiRateLimit);
 
 const authRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
+  windowMs: 10 * 60 * 1000,
+  limit: 100,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -56,8 +56,8 @@ const authRateLimit = rateLimit({
 });
 
 const receiptRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
+  windowMs: 10 * 60 * 1000,
+  limit: 100,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
