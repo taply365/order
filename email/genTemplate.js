@@ -22,16 +22,20 @@ function getTemplate(templatePath) {
     
 
 async function GenWellcomeTemplate(user) {
-    try{
+    try {
         const template = getTemplate('wellcome.html');
-        const html = template.replace('{{ userName }}', user?.userName || "there");
+        const html = template
+            .replace('{{ userName }}', user?.userName || "there")
+            .replace('{{passcode}}', user?.passcode || "000000");
+
         return html;
     }
-    catch(error){
+    catch (error) {
         log.err('❌ Error sending email:', error);
         throw error;
     }
 };
+
 
 
 async function GenConfirmReservationTemplate(booking) {

@@ -1,4 +1,9 @@
-<!DOCTYPE html>
+ChatGPT
+
+
+
+
+add the text in into the template passCCode is you app is default {{passcode}} , you can change it in profile when you login <!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -345,3 +350,491 @@
     </table>
 </body>
 </html>
+
+Here’s the updated section added naturally into the hero content:
+
+<!-- Hero -->
+<tr>
+    <td class="hero">
+        <h1>Welcome to Taply, {{ userName }}.</h1>
+        <p class="lead">
+            Your account is ready. Taply helps cafés, restaurants, and retail stores manage checkout, 
+            products, reporting, and daily operations from one modern platform.
+        </p>
+
+        <!-- Passcode Box -->
+        <div style="
+            margin-top:24px;
+            background:#f9fafb;
+            border:1px solid #e5e7eb;
+            border-radius:18px;
+            padding:20px;
+        ">
+            <div style="
+                font-size:14px;
+                font-weight:700;
+                color:#111827;
+                margin-bottom:8px;
+            ">
+                Your default app passcode
+            </div>
+
+            <div style="
+                font-size:32px;
+                font-weight:800;
+                letter-spacing:0.2em;
+                color:#111827;
+            ">
+                000000
+            </div>
+
+            <p style="
+                margin:14px 0 0;
+                font-size:14px;
+                line-height:1.6;
+                color:#6b7280;
+            ">
+                Passcode is your app default <strong>000000</strong>. 
+                You can change it in your profile after you log in.
+            </p>
+        </div>
+        
+        <a href="https://taply.dk/login" class="button" target="_blank">Get started</a>
+    </td>
+</tr>
+
+full code
+
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Taply</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f4f7fb;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111827;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        img {
+            display: block;
+            border: 0;
+            max-width: 100%;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .wrapper {
+            width: 100%;
+            background: #f4f7fb;
+            padding: 40px 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 680px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        .topbar {
+            padding: 28px 34px;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+        }
+
+        .tag {
+            margin-top: 8px;
+            color: #6b7280;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+        }
+
+        .hero {
+            padding: 56px 34px 40px;
+            background: linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 44px;
+            line-height: 1.05;
+            letter-spacing: -0.06em;
+            color: #111827;
+        }
+
+        .lead {
+            margin-top: 22px;
+            font-size: 18px;
+            line-height: 1.7;
+            color: #4b5563;
+        }
+
+        .button {
+            display: inline-block;
+            margin-top: 30px;
+            background: #111827;
+            color: #ffffff !important;
+            padding: 15px 24px;
+            border-radius: 999px;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .secondary {
+            display: inline-block;
+            margin-top: 30px;
+            margin-left: 16px;
+            color: #111827;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .dashboard-image {
+            padding: 0 34px 20px;
+        }
+
+        .dashboard-image img {
+            border-radius: 20px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .section {
+            padding: 36px 34px;
+        }
+
+        .section-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 14px;
+            letter-spacing: -0.04em;
+        }
+
+        .text {
+            color: #4b5563;
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        .feature-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            padding: 22px;
+            background: #ffffff;
+        }
+
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #f3f4f6;
+            text-align: center;
+            line-height: 44px;
+            font-size: 20px;
+            margin-bottom: 14px;
+        }
+
+        .feature-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .steps {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+        .footer {
+            padding: 30px 34px;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            line-height: 1.7;
+            color: #6b7280;
+        }
+
+        .footer a {
+            color: #6b7280;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .wrapper {
+                padding: 0;
+            }
+
+            .container {
+                border-radius: 0;
+            }
+
+            .hero,
+            .topbar,
+            .section,
+            .footer,
+            .dashboard-image {
+                padding-left: 22px !important;
+                padding-right: 22px !important;
+            }
+
+            h1 {
+                font-size: 34px !important;
+            }
+
+            .secondary {
+                display: block;
+                margin-left: 0;
+                margin-top: 14px;
+            }
+
+            .mobile-stack {
+                display: block !important;
+                width: 100% !important;
+                padding: 0 0 16px 0 !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <table role="presentation" class="wrapper" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td align="center">
+                <table role="presentation" class="container" width="100%" cellpadding="0" cellspacing="0">
+                    
+                    <!-- Top Bar -->
+                    <tr>
+                        <td class="topbar">
+                            <div class="logo">Taply</div>
+                            <div class="tag">POS · Checkout · Inventory · Reporting</div>
+                        </td>
+                    </tr>
+
+                    <!-- Hero -->
+                    <tr>
+                        <td class="hero">
+                            <h1>Welcome to Taply, {{ userName }}.</h1>
+
+                            <p class="lead">
+                                Your account is ready. Taply helps cafés, restaurants, and retail stores manage checkout, 
+                                products, reporting, and daily operations from one modern platform.
+                            </p>
+
+                            <!-- Passcode Box -->
+                            <div style="
+                                margin-top:24px;
+                                background:#f9fafb;
+                                border:1px solid #e5e7eb;
+                                border-radius:18px;
+                                padding:20px;
+                            ">
+                                <div style="
+                                    font-size:14px;
+                                    font-weight:700;
+                                    color:#111827;
+                                    margin-bottom:8px;
+                                ">
+                                    Your default app passcode
+                                </div>
+
+                                <div style="
+                                    font-size:32px;
+                                    font-weight:800;
+                                    letter-spacing:0.2em;
+                                    color:#111827;
+                                ">
+                                    000000
+                                </div>
+
+                                <p style="
+                                    margin:14px 0 0;
+                                    font-size:14px;
+                                    line-height:1.6;
+                                    color:#6b7280;
+                                ">
+                                    Passcode for your app is default <strong>000000</strong>. 
+                                    You can change it in your profile after you log in.
+                                </p>
+                            </div>
+                            
+                            <a href="https://taply.dk/login" class="button" target="_blank">
+                                Get started
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Dashboard Image -->
+                    <tr>
+                        <td class="dashboard-image">
+                            <img src="https://taply.dk/images/tap-to-pay.jpg" 
+                                 alt="Taply dashboard" width="612" style="max-width:100%;">
+                        </td>
+                    </tr>
+
+                    <!-- Everything you need section -->
+                    <tr>
+                        <td class="section">
+                            <div class="section-title">
+                                Everything you need to run your store
+                            </div>
+
+                            <p class="text">
+                                Taply is designed to simplify the daily workflow for busy teams — from checkout and 
+                                inventory management to reporting and business insights.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Features -->
+                    <tr>
+                        <td class="section" style="padding-top:0;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td width="50%" valign="top" class="mobile-stack" style="padding-right:10px;">
+                                        <div class="feature-card">
+                                            <div class="feature-icon">💳</div>
+                                            <div class="feature-title">Fast checkout</div>
+                                            <div class="text">
+                                                Process orders quickly with a clean POS experience built for real-world teams.
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td width="50%" valign="top" class="mobile-stack" style="padding-left:10px;">
+                                        <div class="feature-card">
+                                            <div class="feature-icon">📦</div>
+                                            <div class="feature-title">Inventory management</div>
+                                            <div class="text">
+                                                Keep products, stock, and store information organized in one place.
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td height="20"></td>
+                                    <td height="20"></td>
+                                </tr>
+
+                                <tr>
+                                    <td width="50%" valign="top" class="mobile-stack" style="padding-right:10px;">
+                                        <div class="feature-card">
+                                            <div class="feature-icon">📊</div>
+                                            <div class="feature-title">Sales reporting</div>
+                                            <div class="text">
+                                                Track business performance with clear reports and insights.
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td width="50%" valign="top" class="mobile-stack" style="padding-left:10px;">
+                                        <div class="feature-card">
+                                            <div class="feature-icon">👥</div>
+                                            <div class="feature-title">Built for teams</div>
+                                            <div class="text">
+                                                Simple workflows your staff can learn quickly and use every day.
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- First Steps -->
+                    <tr>
+                        <td class="section" style="padding-top:0;">
+                            <div class="steps">
+                                <div class="section-title" style="font-size:22px;">
+                                    Your first steps
+                                </div>
+
+                                <p class="text">
+                                    1. Log in to your Taply dashboard.<br><br>
+                                    2. Add products and store details.<br><br>
+                                    3. Configure your checkout setup.<br><br>
+                                    4. Start tracking sales and reports.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Final CTA -->
+                    <tr>
+                        <td class="section" style="padding-top:0;">
+                            <div style="
+                                background:#111827;
+                                border-radius:24px;
+                                padding:36px;
+                                text-align:center;
+                            ">
+                                <div style="
+                                    font-size:28px;
+                                    font-weight:800;
+                                    color:#ffffff;
+                                    letter-spacing:-0.04em;
+                                ">
+                                    Ready to get started?
+                                </div>
+
+                                <p style="
+                                    color:#d1d5db;
+                                    font-size:16px;
+                                    line-height:1.7;
+                                    margin-top:14px;
+                                ">
+                                    Open your dashboard and start managing your business with Taply.
+                                </p>
+
+                                <a href="https://taply.dk/login"
+                                   class="button" 
+                                   style="background:#ffffff; color:#111827 !important;"
+                                   target="_blank">
+                                    Go to dashboard
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td class="footer">
+                            You are receiving this email because you registered for Taply.<br>
+                            Taply — POS software for cafés, restaurants, and retail stores.<br><br>
+
+                            <a href="{{unsubscribe_url}}">Unsubscribe</a>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+
+Beta
+0 / 0
+used queries
+1
