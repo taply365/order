@@ -27,7 +27,7 @@ const HandleGetNewOrders = async (req, res) => {
 
   try {
     let { receiverId, orders, orderPickupTime } = req.body;
-    const  { guestId } = await getJwtTokenData(req);
+    const  guestId  = await getJwtTokenData(req);
     const orderType = req.query.type || "online";
 
     if (!guestId) {
@@ -140,7 +140,7 @@ const HandleGetNewOrders = async (req, res) => {
       });
     }
 
-    log.err({orderTYE: orderType})
+    log.debug({orderType: orderType})
     const create_payment = await HandleCreatePayment(orderType, orderDetails);
     if(!create_payment){
       log.warn(`[💳❌]Payment processing failed for order ID: ${orderDetails.id}`);
