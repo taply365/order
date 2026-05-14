@@ -13,6 +13,7 @@ import router from "./routers/routers.js";
 import { origins } from "./config.js";
 
 import { handleSendSupportEmail } from "./routerHandler/email.js";
+import { HandleGetReceiptSession } from "./routerHandler/receipts.js";
 
 
 const app = express();
@@ -68,10 +69,10 @@ const receiptRateLimit = rateLimit({
 app.use("/production/authenticate", authRateLimit);
 app.use("/gen-guest-token", authRateLimit);
 app.use("/send-support-email", authRateLimit);
-app.use("/order/receipt-session", receiptRateLimit);
 app.use("/order", receiptRateLimit);
 
 app.post('/send-support-email', handleSendSupportEmail); // 👈 new route for support emails
+app.get('/order/receipt-session/business/:businessId/code/:code', receiptRateLimit, HandleGetReceiptSession); // 👈 apply rate limit to receipt session route
 
 app.get('/', (req, res) => {
   res.status(200).sendFile(homePagePath);
