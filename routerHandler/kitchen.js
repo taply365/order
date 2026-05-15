@@ -30,7 +30,7 @@ async function HandleGetOrdersForKitchen(req, res) {
 
 
 
-async function HandleSendTableOrdersForKitchen(req, res) {
+async function HandleUpdateTableOrdersForKitchenEvent(req, res) {
     try {
         const data = req.body;
         const businessId = req.params.id;
@@ -43,18 +43,12 @@ async function HandleSendTableOrdersForKitchen(req, res) {
         io.to(`business:${businessId}`)
         .timeout(5000)
         .emit("update_tableOrders_list", {success: true, tableId: tableId}, (err, responses) => {
-            log.debug(`sending checkout session to business room: ${businessId}`);
-
-            if (err) {
-            log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
-            }
-
             const confirmed = responses?.some((res) => res?.success);
 
             if (confirmed) {
-            log.info(`[socket ✅📦] Checkout session confirmed for business with uid: ${businessId}`);
+            log.info(`[socket ✅📦] sending update table orders list event to business room: ${businessId}`);
             } else {
-            log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
+            log.warn(`[socket ⚠️📤] No client confirmed update table orders list for business with uid: ${businessId}`);
             }
         });
 
@@ -63,12 +57,7 @@ async function HandleSendTableOrdersForKitchen(req, res) {
             io.to(`business:${businessId}`)
             .timeout(5000)
             .emit("table_order_deleted", {clear: true, tableId: tableId}, (err, responses) => {
-                log.debug(`sending clear table orders to business room: ${businessId}`);
-
-                if (err) {
-                log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
-                }
-
+                
                 const confirmed = responses?.some((res) => res?.success);
 
                 if (confirmed) {
@@ -125,8 +114,6 @@ async function HandleUpdateOrdersStatus(req, res) {
         io.to(`guest:${order.customerId}`).emit("orderStatusUpdate", { orderId: order.orderId, status });
     };
 
-
-
     res.status(200).json({
       success: true,
       message: `Order status updated successfully`,
@@ -138,4 +125,4 @@ async function HandleUpdateOrdersStatus(req, res) {
   }
 }
 
-export { HandleGetOrdersForKitchen, HandleSendTableOrdersForKitchen, HandleUpdateOrdersStatus };
+export { HandleGetOrdersForKitchen, HandleUpdateTableOrdersForKitchenEvent, HandleUpdateOrdersStatus };

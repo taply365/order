@@ -3,7 +3,7 @@ import log from "minhluanlu-color-log";
 import { getIO } from "../socketIO/socket.js";
 
 
-async function HandleSendOpenCheckoutSessionToApp(req, res) {
+async function HandleOpenCheckoutSessionToAppEvent(req, res) {
     try{
         const data = req.body;
         const { businessId } = data;
@@ -15,19 +15,14 @@ async function HandleSendOpenCheckoutSessionToApp(req, res) {
         io.to(`business:${businessId}`)
         .timeout(5000)
         .emit("checkout-session-open", data , (err, responses) => {
-            log.debug(`sending checkout session event to business room: ${businessId}`);
-
-            if (err) {
-            log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
-            }
-
+            log.debug("...");
             const confirmed = responses?.some((res) => res?.success);
-
             if (confirmed) {
-            log.info(`[socket ✅📦] Checkout session terminal opened for business with uid: ${businessId}`);
+                log.info(`[socket ✅📦] Sending checkout session event to terminal room: ${businessId}`);
             } else {
-            log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
+                log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
             }
+            
         });
 
         res.status(200).json({success: true, message: 'Checkout session event sent to app' });
@@ -38,39 +33,33 @@ async function HandleSendOpenCheckoutSessionToApp(req, res) {
     }
 }
 
-function HandleSendCloseCheckoutSessionToApp(req, res) {
+function HandleCloseCheckoutSessionToAppEvent(req, res) {
    try{
         const data = req.body;
         const { businessId } = data;
 
         const io = getIO();
 
-        log.info(`Received request to send checkout session to app for businessId: ${businessId}`);
+        log.info(`Received request to send close checkout session to app for businessId: ${businessId}`);
         console.log('Data payload:', data);
         io.to(`business:${businessId}`)
         .timeout(5000)
         .emit("checkout-session-close", data , (err, responses) => {
-            log.debug(`sending checkout session event to business room: ${businessId}`);
-
-            if (err) {
-            log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
-            }
-
+            log.debug("...");
             const confirmed = responses?.some((res) => res?.success);
-
             if (confirmed) {
-            log.info(`[socket ✅📦] Checkout session terminal closed for business with uid: ${businessId}`);
+                log.info(`[socket ✅📦] sending close checkout session event to terminal room: ${businessId}`);
             } else {
-            log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
+                log.warn(`[socket ⚠️📤] No client confirmed close checkout session for business with uid: ${businessId}`);
             }
         });
 
-        res.status(200).json({success: true, message: 'Checkout session event sent to app' });
+        res.status(200).json({success: true, message: 'Close checkout session event sent to app' });
     }
     catch(error){
-        log.err('Error sending checkout session to app:', error);
+        log.err('Error sending close checkout session to app:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 }
 
-export { HandleSendOpenCheckoutSessionToApp , HandleSendCloseCheckoutSessionToApp};
+export { HandleOpenCheckoutSessionToAppEvent , HandleCloseCheckoutSessionToAppEvent};

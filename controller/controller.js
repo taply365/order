@@ -3,11 +3,10 @@ import { genGuestToken } from "../routerHandler/gen_guest_token.js";
 import { HandleCheckBusinessOpenHours } from "../routerHandler/businesses.js";
 import { HandleGetPaymentByPaymentIntentId } from "../routerHandler/payments.js";
 import { HandleAuth } from "../routerHandler/auth.js";
-import { HandleGetOrdersForKitchen, HandleSendTableOrdersForKitchen, HandleUpdateOrdersStatus } from "../routerHandler/kitchen.js";
+import { HandleGetOrdersForKitchen, HandleUpdateOrdersStatus } from "../routerHandler/kitchen.js";
 import { HandleSendReceiptToEmail, HandleCreateReceiptSession } from "../routerHandler/receipts.js";
 import { HandleCheckoutSessionSuccess } from "../routerHandler/checkout_session.js";
 import { HandleUpdateTableOrderStatus } from "../routerHandler/tableOrders.js";
-import { HandleSendOpenCheckoutSessionToApp, HandleSendCloseCheckoutSessionToApp } from "../routerHandler/terminal.js";
 import { handleSendWellcomeEmail } from "../routerHandler/email.js";
 
 
@@ -24,14 +23,11 @@ const Controller = {
    HandleAuth,
    HandleCheckOrderPickupTime,
    HandleGetOrdersForKitchen,
-   HandleSendTableOrdersForKitchen,
    HandleSendReceiptToEmail,
    HandleCreateReceiptSession,
    HandleCheckoutSessionSuccess,
    HandleUpdateTableOrderStatus,
    HandleUpdateOrdersStatus,
-   HandleSendOpenCheckoutSessionToApp,
-   HandleSendCloseCheckoutSessionToApp,
    handleSendWellcomeEmail,
 }
 

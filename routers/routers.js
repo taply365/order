@@ -29,9 +29,6 @@ router.post("/new-order", controller.HandleGetNewOrders); // New order from onli
 router.post("/order/receipt/send-to-mail", controller.HandleSendReceiptToEmail); // send receipt to email after order payment success
 router.post("/order/business/:businessId/order/:orderId/print-receipt", controller.HandleCreateReceiptSession); // create receipt session
 
-router.post("/business/:id/kitchen-routing/send-table-orders/table/:tableId", controller.HandleSendTableOrdersForKitchen); // send table orders to kitchen
-router.post("/business/terminal/send-open-checkout-session", controller.HandleSendOpenCheckoutSessionToApp); // send open checkout session event to app for POS checkout
-router.post("/business/terminal/send-close-checkout-session", controller.HandleSendCloseCheckoutSessionToApp);
 
 // EMAIL //
 router.post("/email/wellcome", controller.handleSendWellcomeEmail); // send email with custom template
@@ -52,5 +49,9 @@ router.put("/kitchen-routing/update-orders-status/:status", controller.HandleUpd
 router.post("/event/booking", eventController.HandleNewBookingEvent); // handle booking event from booking service
 router.post("/event/booking/confirm", eventController.HandleConfirmBookingEvent); // handle confirm booking event from booking service
 router.post("/event/booking/cancel", eventController.HandleCancelBookingEvent); // handle cancel booking event from booking service
+
+router.post("/business/:id/kitchen-routing/send-table-orders/table/:tableId", eventController.HandleUpdateTableOrdersForKitchenEvent); // send table orders to kitchen
+router.post("/business/terminal/send-open-checkout-session", eventController.HandleOpenCheckoutSessionToAppEvent); // send open checkout session event to app for POS checkout
+router.post("/business/terminal/send-close-checkout-session", eventController.HandleCloseCheckoutSessionToAppEvent);
 
 export default router;
