@@ -18,23 +18,17 @@ async function HandleNewBookingEvent(req, res) {
       .emit(
         "new_booking_event", booking,
         (err, responses) => {
-          log.debug(`Sending booking event to business room: ${businessId}`);
-
-          if (err) {
-            log.warn(
-              `[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`
-            );
-          }
+          log.debug(`Sending pending booking event to business room: ${businessId}`);
 
           const confirmed = responses?.some((response) => response?.success);
 
           if (confirmed) {
             log.info(
-              `[socket ✅📦] Booking event confirmed for business with uid: ${businessId}`
+              `[socket ✅📦] Pending Booking event for business with uid: ${businessId}`
             );
           } else {
             log.warn(
-              `[socket ⚠️📤] No client confirmed booking event for business with uid: ${businessId}`
+              `[socket ⚠️📤] No client pending booking event for business with uid: ${businessId}`
             );
           }
         }
@@ -42,7 +36,7 @@ async function HandleNewBookingEvent(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: "Booking event received successfully",
+      message: "Booking event pending received successfully",
     });
   } catch (error) {
     console.error("Error handling booking event:", error);
@@ -55,7 +49,7 @@ async function HandleNewBookingEvent(req, res) {
 };
 
 
-
+// confirm only from business side, not from customer side, so we can send email to customer to confirm reservation
 async function  HandleConfirmBookingEvent(req, res) {
   try{
     const booking = req.body;
@@ -76,11 +70,41 @@ async function  HandleConfirmBookingEvent(req, res) {
 }
 
 
+// cancel can be from both business side and customer side, so we can send email to customer to notify cancellation
 async function  HandleCancelBookingEvent(req, res) {
   try{
+    const io = getIO();
     const booking = req.body;
+    const source = req.query.source || "unknown"; // Get source from query parameter, default to "unknown"
     console.log("Received cancel booking event:", booking);
-    await SendCancelReservationEmail(booking);
+    if(booking?.customerEmail){
+      log.debug(`Sending cancellation email to customer: ${booking.customerEmail}`);
+      await SendCancelReservationEmail(booking);
+    }
+
+    if(source === "customer"){
+      io.to(`business:${booking.businessId}`)
+      .timeout(5000)
+      .emit(
+        "cancelled_booking_event", booking,
+        (err, responses) => {
+          log.debug(`Sending cancelled booking event to business room: ${booking.businessId}`);
+          const confirmed = responses?.some((response) => response?.success);
+
+          if (confirmed) {
+            log.info(
+              `[socket ✅📦] Cancelled booking event for business with uid: ${booking.businessId}`
+            );
+          } else {
+            log.warn(
+              `[socket ⚠️📤] No client cancelled booking event for business with uid: ${booking.businessId}`
+            );
+          }
+        }
+      );
+    }
+
+
     return res.status(200).json({
       success: true,
       message: "Booking cancelled and email sent successfully",
