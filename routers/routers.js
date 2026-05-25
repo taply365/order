@@ -50,7 +50,7 @@ router.post("/event/booking", eventController.HandleNewBookingEvent); // handle 
 router.post("/event/booking/confirm", eventController.HandleConfirmBookingEvent); // handle confirm booking event from booking service
 router.post("/event/booking/cancel", eventController.HandleCancelBookingEvent); // handle cancel booking event from booking service
 
-router.post("/business/:id/kitchen-routing/send-table-orders/table/:tableId", eventController.HandleUpdateTableOrdersForKitchenEvent); // send table orders to kitchen
+router.post("/business/:id/kitchen-routing/pos-orders/table/:tableId", eventController.HandleUpdateTableOrdersForKitchenEvent); // send table orders to kitchen
 router.post("/business/terminal/send-open-checkout-session", eventController.HandleOpenCheckoutSessionToAppEvent); // send open checkout session event to app for POS checkout
 router.post("/business/terminal/send-close-checkout-session", eventController.HandleCloseCheckoutSessionToAppEvent);
 

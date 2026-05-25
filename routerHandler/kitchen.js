@@ -1,30 +1,46 @@
 import { RunQuery } from '../db/db.js';
 import log from "minhluanlu-color-log";
 import { getIO } from "../socketIO/socket.js";
+import { getUnifiedKitchenQueue } from '../kitchen/kitchenQueue.js';
 
 
+/**
+ * Get unified kitchen queue for display
+ * Shows ALL orders (online + POS) sorted by priority and due time
+ * 
+ * Online orders:
+ * - source: "online"
+ * - priority: "normal"
+ * - kitchenDueAt: pickupAt (customer promise time)
+ * 
+ * POS/Table orders:
+ * - source: "pos"
+ * - priority: "high"
+ * - kitchenDueAt: scheduled ready time
+ * 
+ * Unified sort: priority (high first) → kitchenDueAt → createdAt
+ */
 async function HandleGetOrdersForKitchen(req, res) {
     try {
-        const status = req.params.status;
         const businessId = req.params.id;
-        const query = `
-                SELECT * 
-            FROM orders 
-            WHERE status = ? 
-            AND businessId = ? 
-            AND createdAt >= CURDATE()
-            AND createdAt < CURDATE() + INTERVAL 1 DAY
-            ORDER BY createdAt DESC;
-        `;
-        const result = await RunQuery(query, [status, businessId]);
+        const status = req.params.status;
+
+        log.info(`Fetching unified kitchen queue for business ${businessId}, status: ${status}`);
+
+        const result = await getUnifiedKitchenQueue(businessId, status);
+
         res.status(200).json({
             success: true,
-            message: `Orders with status '${status}' fetched successfully`,
-            data: result
+            message: `Unified kitchen orders with status '${status}' fetched successfully`,
+            data: result,
+            note: "This queue combines online (pickup) and POS (table) orders. Sorted by: priority (high/normal) → kitchenDueAt → createdAt"
         });
     } catch (error) {
-        log.err('Error fetching kitchen data:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        log.err('Error fetching unified kitchen queue:', error);
+        res.status(500).json({ 
+            error: 'Internal Server Error',
+            message: error.message
+        });
     }
 }
 
@@ -39,16 +55,16 @@ async function HandleUpdateTableOrdersForKitchenEvent(req, res) {
         console.log('Received data for sending table orders to kitchen:', data);
         const io = getIO();
 
-        log.info(`Emitting 'update_tableOrders_list' event to business room: ${businessId} with data:`, {success: true});
+        log.info(`Emitting 'update_kitchen_queue' event to business room: ${businessId} with data:`, {success: true});
         io.to(`business:${businessId}`)
         .timeout(5000)
-        .emit("update_tableOrders_list", {success: true, tableId: tableId}, (err, responses) => {
+        .emit("update_kitchen_queue", {success: true, tableId: tableId}, (err, responses) => {
             const confirmed = responses?.some((res) => res?.success);
 
             if (confirmed) {
-            log.info(`[socket ✅📦] sending update table orders list event to business room: ${businessId}`);
+            log.info(`[socket ✅📦] sending update kitchen queue event to business room: ${businessId}`);
             } else {
-            log.warn(`[socket ⚠️📤] No client confirmed update table orders list for business with uid: ${businessId}`);
+            log.warn(`[socket ⚠️📤] No client confirmed update kitchen queue for business with uid: ${businessId}`);
             }
         });
 
