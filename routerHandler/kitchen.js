@@ -125,13 +125,21 @@ async function HandleUpdateOrdersStatus(req, res) {
         if(order?.source === "pos"){
             tableUpdateName = "tableOrders";
         }
-        await RunQuery(
-            `UPDATE ${tableUpdateName} SET status = ?, data = ? WHERE id = ?`,
-            [status, JSON.stringify(order.data), order?.id]
-        );
-
-            log.info(`Order ${order?.orderId || order?.id} status updated to '${status}' in database, now notifying customer ${order.customerId}`);
-            io.to(`guest:${order.customerId}`).emit("orderStatusUpdate", { orderId: order.orderId, status });
+        // if all statsu in data is not READY, then dont update status
+        if(order?.status !== "READY"){
+            await RunQuery(
+                `UPDATE ${tableUpdateName} SET data = ? WHERE id = ?`,
+                [JSON.stringify(order.data), order?.id]
+            );
+        }
+        // if any status in data is READY, then update status to READY
+        else{
+            log.warn(`Order with id ${order.id} is already in READY status, skipping update.`);
+            await RunQuery(
+                `UPDATE ${tableUpdateName} SET status = ?, data = ? WHERE id = ?`,
+                [status, JSON.stringify(order.data), order?.id]
+            );
+        }
     };
 
     res.status(200).json({
