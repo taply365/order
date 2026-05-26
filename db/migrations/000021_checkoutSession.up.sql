@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS checkoutSessions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    businessId INT NOT NULL UNIQUE,
+    paymentIntentId VARCHAR(255) NOT NULL UNIQUE,
+    OrderId INT NOT NULL,
+    status ENUM('open', 'completed', 'expired', 'cancelled') NOT NULL DEFAULT 'open',
+    expiresAt DATETIME NOT NULL,
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    completedAt DATETIME NULL
+);
