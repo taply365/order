@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS tableOrders (
     id INT AUTO_INCREMENT PRIMARY KEY,
+     businessId INT NOT NULL,
     tableId INT NOT NULL,
     data JSON NOT NULL,
     totalPrice INT NOT NULL,
