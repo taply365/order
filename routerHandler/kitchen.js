@@ -119,15 +119,19 @@ async function HandleUpdateOrdersStatus(req, res) {
     const orders = req.body;
 
     log.info(`Updating status of ${orders.length} orders to '${status}'`);
+    let tableUpdateName = "orders";
 
     for (const order of orders) {
-      await RunQuery(
-        `UPDATE orders SET status = ? WHERE id = ?`,
-        [status, order.orderId]
-      );
+        if(order?.source === "pos"){
+            tableUpdateName = "tableOrders";
+        }
+        await RunQuery(
+            `UPDATE ${tableUpdateName} SET status = ?, data = ? WHERE id = ?`,
+            [status, JSON.stringify(order.data), order?.id]
+        );
 
-        log.info(`Order ${order.orderId} status updated to '${status}' in database, now notifying customer ${order.customerId}`);
-        io.to(`guest:${order.customerId}`).emit("orderStatusUpdate", { orderId: order.orderId, status });
+            log.info(`Order ${order?.orderId || order?.id} status updated to '${status}' in database, now notifying customer ${order.customerId}`);
+            io.to(`guest:${order.customerId}`).emit("orderStatusUpdate", { orderId: order.orderId, status });
     };
 
     res.status(200).json({
@@ -137,6 +141,7 @@ async function HandleUpdateOrdersStatus(req, res) {
     });
   } catch (error) {
     log.err("Error updating order status:", error);
+    console.error("Error updating order status:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 }
