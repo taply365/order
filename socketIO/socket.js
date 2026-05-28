@@ -41,8 +41,20 @@ export default async function createSocketServer(app) {
   const redisHost = process.env.REDIS_HOST;
   const redisPort = process.env.REDIS_PORT;
 
+  const redisReconnectStrategy = (retries) => {
+    if (retries >= 10) {
+      log.err(`Redis connection stopped after ${retries} failed attempts`);
+      return false;
+    }
+
+    return Math.min(retries * 200, 1000);
+  };
+
   const pubClient = createClient({
     url: `redis://:${redisPassword}@${redisHost}:${redisPort}`,
+    socket: {
+      reconnectStrategy: redisReconnectStrategy,
+    },
   });
 
   const subClient = pubClient.duplicate();
