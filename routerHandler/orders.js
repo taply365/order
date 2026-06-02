@@ -354,7 +354,7 @@ async function HandleOrderPaymentSuccess(req, res) {
   await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,["PREPARING", orderId]);
   io.to(`business:${businessId}`)
   .timeout(5000)
-  .emit("update_kitchen_queue", order, (err, responses) => {
+  .emit("new_order", order, (err, responses) => {
     log.debug(`sending checkout session to business room: ${businessId}`);
 
     if (err) {
