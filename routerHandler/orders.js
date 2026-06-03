@@ -112,7 +112,7 @@ const HandleGetNewOrders = async (req, res) => {
     // Save order to database
     const [insertResult] = await connection.query(
       "INSERT INTO orders (businessId, customerId, status, data, currency, totalPrice, pickupAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [businessId, guestId, orderStatus.PREPARING, JSON.stringify(orders), businessCurrency, totalPrice, orderPickupTime]
+      [businessId, guestId, orderStatus.PENDING, JSON.stringify(orders), businessCurrency, totalPrice, orderPickupTime]
     );
 
     if (!insertResult?.insertId) {
