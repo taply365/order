@@ -27,11 +27,11 @@ const HandleGetNewOrders = async (req, res) => {
 
   try {
     let { receiverId, orders, orderPickupTime } = req.body;
-    const  guestId  = await getJwtTokenData(req);
+    const  tokenData  = await getJwtTokenData(req);
     const orderType = req.query.type || "online";
 
-    if (!guestId) {
-      console.log(guestId)
+    if (!tokenData.guestId) {
+      console.log(tokenData.guestId)
       log.warn("[⏳]Unauthorized request: Missing or invalid JWT token");
       return res.status(401).json({ message: "Unauthorized: Missing or invalid token" });
     }
@@ -41,7 +41,7 @@ const HandleGetNewOrders = async (req, res) => {
       return res.status(400).json({ message: "Missing receiverId or orders" });
     }
 
-    log.info(`[⏳📦]Processing new order request for business with uid: ${receiverId} from guest with id: ${guestId}`);
+    log.info(`[⏳📦]Processing new order request for business with uid: ${receiverId} from guest with id: ${tokenData?.guestId}`);
 
     await connection.beginTransaction();
 
@@ -112,7 +112,7 @@ const HandleGetNewOrders = async (req, res) => {
     // Save order to database
     const [insertResult] = await connection.query(
       "INSERT INTO orders (businessId, customerId, status, data, currency, totalPrice, pickupAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [businessId, guestId, orderStatus.PENDING, JSON.stringify(orders), businessCurrency, totalPrice, orderPickupTime]
+      [businessId, tokenData?.guestId, orderStatus.PENDING, JSON.stringify(orders), businessCurrency, totalPrice, orderPickupTime]
     );
 
     if (!insertResult?.insertId) {
@@ -161,7 +161,7 @@ const HandleGetNewOrders = async (req, res) => {
     await RunQuery(`UPDATE orders SET paymentIntentId = ?, orderNumber = ?, type = ? WHERE id = ?`, [paymentIntentId, orderNumber, orderType, orderDetails.id]);
 
     const token = jwt.sign(
-        { orderId: orderDetails.id, guestId: guestId, isBusiness: false},
+        { orderId: orderDetails.id, guestId: tokenData?.guestId, isBusiness: false},
         process.env.SECRET_KEY,
         { expiresIn: "24h" }
     );

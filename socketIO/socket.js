@@ -86,22 +86,22 @@ export default async function createSocketServer(app) {
 
   io.on("connection", (socket) => {
     lastSocketInstance = socket;
-
+    
     log.debug(`🔌 Connection accepted socketID=(${socket.id})`);
-    const businessId = socket?.user?.guestId?.businessId || socket?.user?.businessId || null;
-    const isBusiness = socket?.user?.guestId?.isBusiness || socket?.user?.isBusiness || false;
+    const businessId = socket?.user?.businessId || null;
+    const isBusiness = socket?.user?.isBusiness || false;
     const { guestId } = socket.user || null;
 
 
     if (businessId && isBusiness) {
       socket.join(`business:${businessId}`);
-      log.debug(`🤝 Joined business room: ${businessId}`);
+      log.info(`🤝 Joined business🏛️ room: ${businessId}`);
     }
 
    
     if (guestId && !isBusiness) {
       socket.join(`guest:${socket.user.guestId}`);
-      log.debug(`🤝 Joined guest room: ${socket.user.guestId}`);
+      log.info(`🤝 Joined guest🤵🏻 room: ${socket.user.guestId}`);
     }
 
     socket.on("disconnect", (reason) => {
