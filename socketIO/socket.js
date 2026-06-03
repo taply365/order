@@ -88,8 +88,10 @@ export default async function createSocketServer(app) {
     lastSocketInstance = socket;
 
     log.debug(`🔌 Connection accepted socketID=(${socket.id})`);
-    const { businessId, isBusiness } = socket.user?.guestId || null;
+    const businessId = socket?.user?.guestId?.businessId || socket?.user?.businessId || null;
+    const isBusiness = socket?.user?.guestId?.isBusiness || socket?.user?.isBusiness || false;
     const { guestId } = socket.user || null;
+
 
     if (businessId && isBusiness) {
       socket.join(`business:${businessId}`);
