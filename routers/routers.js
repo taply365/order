@@ -16,7 +16,7 @@ router.get("/production/authenticate", controller.HandleAuth);
 router.get('/gen-guest-token', controller.genGuestToken);
 
 // GET //
-router.get("/order/:id", controller.HandleGetOrderDetailsByJwt);
+router.get("/order/:id/paymentIntentId/:paymentIntentId", controller.HandleGetOrderDetails);
 router.get("/business/:id/orders/status/:status/today", controller.HandleGetTodayOrders);
 router.get("/business/:id/orders-history/status/:status/today", controller.HandleGetOrdersHistory);
 router.get("/kitchen-routing/business/:id/orders/status/:status", controller.HandleGetOrdersForKitchen);

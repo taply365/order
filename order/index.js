@@ -151,6 +151,37 @@ export async function getOrderById(orderId) {
   return rows.length ? rows[0] : null;
 }
 
+export async function getOrderByIdAndPaymentIntentId(orderId, paymentIntentId) {
+  const rows = await RunQuery(`
+    SELECT
+      o.id AS id,
+      o.orderNumber AS orderNumber,
+      o.businessId AS orderBusinessId,
+      o.customerId AS customerId,
+      o.data,
+      o.paymentIntentId AS paymentIntentId,
+      o.status,
+      o.pickupAt,
+      o.createdAt,
+      o.updatedAt,
+      o.totalPrice,
+      o.currency,
+      b.id AS businessId,
+      b.name AS businessName,
+      b.address AS businessAddress,
+      b.Phone AS businessPhone,
+      b.logo AS businessLogo,
+      b.openHours AS businessOpenHours,
+      b.theme AS businessTheme
+    FROM orders o
+    JOIN businesses b ON o.businessId = b.id
+    WHERE o.id = ? AND o.paymentIntentId = ?
+    LIMIT 1
+  `, [orderId, paymentIntentId]);
+
+  return rows.length ? rows[0] : null;
+}
+
 
 
 export async function updateOrderStatus(orderId, status) {

@@ -9,6 +9,7 @@ import {
   checkBusinessFeatureByName, 
   calculateTotalPrice, 
   getOrderById, 
+  getOrderByIdAndPaymentIntentId,
   updateOrderStatus, 
   checkBusinessOpenHours, 
   getTodayOrdersForBusiness,
@@ -18,7 +19,7 @@ import { sendOrderStatusToCustomer } from "../order/customer.js";
 import { getJwtTokenData } from "../auth/index.js";
 import { HandleCreatePayment, checkTooSmallAmount } from "../payment/index.js";
 import { pickupTimeCalculation } from "../order/calculation.js";
-import { formatMySQLDateTime } from "../utils/mysqlDateFormmet.js";
+import { formatMySQLDateTime } from "../utils/mysqlDateFormat.js";
 
 
 const HandleGetNewOrders = async (req, res) => {
@@ -30,11 +31,12 @@ const HandleGetNewOrders = async (req, res) => {
     const  tokenData  = await getJwtTokenData(req);
     const orderType = req.query.type || "online";
 
-    if (!tokenData.guestId) {
+    if (!tokenData) {
       console.log(tokenData.guestId)
       log.warn("[⏳]Unauthorized request: Missing or invalid JWT token");
       return res.status(401).json({ message: "Unauthorized: Missing or invalid token" });
     }
+    const customerId = tokenData?.guestId || tokenData?.email || null;
 
     if (!receiverId || orders == null) {
       log.warn("[⏳]Missing receiverId or orders in request body");
@@ -108,11 +110,10 @@ const HandleGetNewOrders = async (req, res) => {
       log.debug(`Received orderPickupTime from request: ${orderPickupTime}`);
       orderPickupTime = formatMySQLDateTime(orderPickupTime);
     }
-
     // Save order to database
     const [insertResult] = await connection.query(
       "INSERT INTO orders (businessId, customerId, status, data, currency, totalPrice, pickupAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [businessId, tokenData?.guestId, orderStatus.PENDING, JSON.stringify(orders), businessCurrency, totalPrice, orderPickupTime]
+      [businessId, customerId, orderStatus.PENDING, JSON.stringify(orders), businessCurrency, totalPrice, orderPickupTime]
     );
 
     if (!insertResult?.insertId) {
@@ -159,12 +160,7 @@ const HandleGetNewOrders = async (req, res) => {
     // update order with paymentIntentId
     const { paymentIntentId, orderNumber } = create_payment;
     await RunQuery(`UPDATE orders SET paymentIntentId = ?, orderNumber = ?, type = ? WHERE id = ?`, [paymentIntentId, orderNumber, orderType, orderDetails.id]);
-
-    const token = jwt.sign(
-        { orderId: orderDetails.id, guestId: tokenData?.guestId, isBusiness: false},
-        process.env.SECRET_KEY,
-        { expiresIn: "24h" }
-    );
+    
 
     orderDetails.paymentIntentId = paymentIntentId;
     orderDetails.orderNumber = orderNumber;
@@ -173,8 +169,7 @@ const HandleGetNewOrders = async (req, res) => {
       success: true,
       message: "Order created successfully",
       data: orderDetails,
-      payment: create_payment,
-      token,
+      payment: create_payment
     });
   } catch (error) {
     log.err(`[❌]Error handling get new orders request: ${error.message}`);
@@ -192,36 +187,15 @@ const HandleGetNewOrders = async (req, res) => {
   }
 };
 
-
-async function HandleGetOrderDetailsByJwt(req, res) {
+// for make the receipt //
+async function HandleGetOrderDetails(req, res) {
   log.debug("[⏳]Handling get order details request");
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) {
-    log.warn("[🚫]Missing authorization token in request headers");
-    return res.status(401).json({ success: false, message: "Missing authorization token" });
-  }
-
-  let id;
-  try {
-    const decoded = jwt.verify(token, process.env.SECRET_KEY, { algorithm: "HS256" }); 
-    id = decoded.orderId;
-  } catch (error) {
-    log.warn("[🚫]Invalid authorization token");
-    return res.status(401).json({success:false,  message: "Invalid authorization token" });
-  }
-
-  if (!id) {
-    id = req.params.id; // fallback to URL parameter if not in token
-    if (!id) {
-      log.warn("[🚫]Missing orderId in both JWT token and URL parameters");
-      return res.status(400).json({ success: false, message: "Missing orderId" });
-    }
-  }
+  const { id, paymentIntentId } = req.params;
 
   try {
-    const order = await getOrderById(id);
+    const order = await getOrderByIdAndPaymentIntentId(id, paymentIntentId);
     if (!order) {
-      log.warn(`[📦❌]Order with ID ${id} not found`);
+      log.warn(`[📦❌]Order with ID ${id} and payment intent ID ${paymentIntentId} not found`);
       return res.status(404).json({ message: "Order not found" });
     }
 
@@ -442,7 +416,7 @@ async function HandleCheckOrderPickupTime(req, res) {
 
 export { 
   HandleGetNewOrders, 
-  HandleGetOrderDetailsByJwt, 
+  HandleGetOrderDetails, 
   HandleUpdateOrderStatus, 
   HandleGetTodayOrders, 
   HandleOrderPaymentSuccess, 
