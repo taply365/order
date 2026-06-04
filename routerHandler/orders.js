@@ -108,16 +108,18 @@ const HandleGetNewOrders = async (req, res) => {
     }
     else{
       // set only 15 minutes for self-service orders
-      if(orderType === "self_service"){
+      if(orderType !== "online"){
         log.debug("Calculating pickup time for self-service order");
         const calculationResult = await calculationPickupTimeForSelfServiceOrders(businessId);
         const { pickupTime } = calculationResult;
         orderPickupTime = pickupTime;
+        console.log(`Calculated pickup time for self-service order: ${orderPickupTime}`);
       }
       // format orderPickupTime user has provided in request body to MySQL DATETIME format
       else{
         log.debug(`Received orderPickupTime from request: ${orderPickupTime}`);
         orderPickupTime = formatMySQLDateTime(orderPickupTime);
+        console.log(`Formatted orderPickupTime from request format: ${orderPickupTime}`);
       }
     }
     // Save order to database
