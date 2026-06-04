@@ -18,7 +18,7 @@ import {
 import { sendOrderStatusToCustomer } from "../order/customer.js";
 import { getJwtTokenData } from "../auth/index.js";
 import { HandleCreatePayment, checkTooSmallAmount } from "../payment/index.js";
-import { pickupTimeCalculation } from "../order/calculation.js";
+import { pickupTimeCalculation, calculationPickupTimeForSelfServiceOrders } from "../order/calculation.js";
 import { formatMySQLDateTime } from "../utils/mysqlDateFormat.js";
 
 
@@ -99,16 +99,26 @@ const HandleGetNewOrders = async (req, res) => {
       });
     }
 
-    // calculate pickup time
-    if(!orderPickupTime || orderPickupTime === null){
+    // calculate pickup time for online orders if orderPickupTime is not provided or null, for self-service orders calculate pickup time based on current time + 15 minutes, if orderPickupTime is provided format it to MySQL DATETIME format
+    if(!orderPickupTime || orderPickupTime === null && orderType === "online"){
       log.debug("Calculating pickup time because orderPickupTime is null or not provided");
       const calculationResult = await pickupTimeCalculation(businessId);
       const { pickupTime } = calculationResult;
       orderPickupTime = pickupTime;
     }
     else{
-      log.debug(`Received orderPickupTime from request: ${orderPickupTime}`);
-      orderPickupTime = formatMySQLDateTime(orderPickupTime);
+      // set only 15 minutes for self-service orders
+      if(orderType === "self_service"){
+        log.debug("Calculating pickup time for self-service order");
+        const calculationResult = await calculationPickupTimeForSelfServiceOrders(businessId);
+        const { pickupTime } = calculationResult;
+        orderPickupTime = pickupTime;
+      }
+      // format orderPickupTime user has provided in request body to MySQL DATETIME format
+      else{
+        log.debug(`Received orderPickupTime from request: ${orderPickupTime}`);
+        orderPickupTime = formatMySQLDateTime(orderPickupTime);
+      }
     }
     // Save order to database
     const [insertResult] = await connection.query(

@@ -84,6 +84,7 @@ export const pickupTimeCalculation = async (businessId) => {
   log.info({"Current server time:": now});
   log.info({"Europe/Copenhagen time:": localTime});
   log.info({"Kitchen capacity settings:": {maxOrdersPerSlot, slotMinutes, prepMinutes, slotLimit}});
+  
 
   // Find first available slot considering BOTH online and POS orders
   const pickupTime = await getAvailableKitchenSlot(
@@ -112,6 +113,22 @@ export const pickupTimeCalculation = async (businessId) => {
     availableSlots,
   };
 };
+
+
+export const calculationPickupTimeForSelfServiceOrders = async (businessId) => {
+  const kitchencapacity = await getKitchenCapacity(businessId);
+  const { prepMinutes } = kitchencapacity;
+  const now = new Date(); // UTC instant, like time.Now().UTC()
+
+  const kitchenStartAt = now;
+
+  const kitchenDueAt = new Date(
+    now.getTime() + prepMinutes * 60 * 1000
+  );
+  return {
+    pickupTime: kitchenDueAt
+  };
+}
 
 /**
  * KITCHEN CAPACITY CONCEPTS
