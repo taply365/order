@@ -9,8 +9,8 @@ const DOMAIN = process.env.APP_URL;
 
 async function genGuestToken(req, res) {
     try {
-        log.info("🔑 Generating guest token...");
         const guestId = req.query.guestId;
+        log.info("🔑 Generating guest token...", { guestId });
         if (!process.env.SECRET_KEY) {
             log.err("SECRET_KEY not configured");
             return res.status(500).json({

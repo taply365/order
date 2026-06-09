@@ -20,7 +20,7 @@ import { getJwtTokenData } from "../auth/index.js";
 import { HandleCreatePayment, checkTooSmallAmount } from "../payment/index.js";
 import { pickupTimeCalculation, calculationPickupTimeForSelfServiceOrders } from "../order/calculation.js";
 import { formatMySQLDateTime } from "../utils/mysqlDateFormat.js";
-
+import  randomString from "../utils/radomString.js";
 
 const HandleGetNewOrders = async (req, res) => {
   log.debug("Handling get new orders request");
@@ -36,7 +36,7 @@ const HandleGetNewOrders = async (req, res) => {
       log.warn("[⏳]Unauthorized request: Missing or invalid JWT token");
       return res.status(401).json({ message: "Unauthorized: Missing or invalid token" });
     }
-    const customerId = tokenData?.guestId || tokenData?.email || null;
+    const customerId = tokenData?.guestId || `GUEST-${randomString(10)}`;
 
     if (!receiverId || orders == null) {
       log.warn("[⏳]Missing receiverId or orders in request body");
