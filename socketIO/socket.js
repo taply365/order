@@ -5,6 +5,7 @@ import { createClient } from "redis";
 import jwt from "jsonwebtoken";
 import log from "minhluanlu-color-log";
 import dotenv from "dotenv";
+import Subscriber from "../queue/sub/init.js";
 
 import { config, origins } from "../config.js";
 import { emitEvent } from "./events.js";
@@ -13,6 +14,8 @@ dotenv.config();
 
 let ioInstance = null;
 let lastSocketInstance = null;
+let subscriberInstance = null;
+let pubClientInstance = null;
 
 export function getIO() {
   if (!ioInstance) throw new Error("Socket.IO not initialized yet");
@@ -21,6 +24,11 @@ export function getIO() {
 
 export function getLastSocket() {
   return lastSocketInstance;
+}
+
+export function getPubClient() {
+  if (!pubClientInstance) throw new Error("Redis pubClient not initialized yet");
+  return pubClientInstance;
 }
 
 export default async function createSocketServer(app) {
@@ -57,13 +65,17 @@ export default async function createSocketServer(app) {
     },
   });
 
-  const subClient = pubClient.duplicate();
-
+  const subClient = pubClient.duplicate(); // Socket.IO only
+  const subscriber = pubClient.duplicate(); // app subscribe only
+  
   pubClient.on("error", (err) => log.err("Redis pubClient error:", err));
   subClient.on("error", (err) => log.err("Redis subClient error:", err));
+  subscriber.on("error", (err) => log.err("Redis appSubClient error:", err));
 
   await pubClient.connect();
   await subClient.connect();
+  await subscriber.connect();
+  await Subscriber(subscriber); // Start the Redis subscriber for app events
 
   io.adapter(createAdapter(pubClient, subClient));
 
