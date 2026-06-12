@@ -36,13 +36,8 @@ router.post("/email/wellcome", controller.handleSendWellcomeEmail); // send emai
 
 // PUT //
 router.put("/order/status", controller.HandleUpdateOrderStatus); // order status update by business
-router.put("/order/:orderId/payment-success/:paymentIntentId", controller.HandleOrderPaymentSuccess); // order POS payment success update by business
-router.put("/order/:orderId/payment-success/:paymentIntentId/session/:sessionId", controller.HandleCheckoutSessionSuccess); // order POS payment success update by business
 router.put("/order/table-order/:id/status/:status", controller.HandleUpdateTableOrderStatus); // table order status update by business
 router.put("/kitchen-routing/update-orders-status/:status", controller.HandleUpdateOrdersStatus); // multiple orders status update by business
-
-
-
 
 
 // EVENT //

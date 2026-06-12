@@ -317,77 +317,6 @@ async function HandleGetOrdersHistory(req, res) {
 }
 
 
-// order payment success handler - update order status to PAID, update payment status, delete checkout session, emit new order to business room
-async function HandleOrderPaymentSuccess(req, res) {
-  const { orderId, paymentIntentId } = req.params;
-  const isSelfServicePayment = req.query.selfService === "true";
-  const io = getIO();
-  log.debug(`[💸✅]Handling order payment success for order ID: ${orderId} and paymentIntentId: ${paymentIntentId}`);
-
-  if (!orderId || !paymentIntentId) {
-    log.warn("[❌]Missing orderId or paymentIntentId in request parameters");
-    return res.status(400).json({ message: "Missing orderId or paymentIntentId" });
-  }
-
-  log.debug(`[⏳📦]Handling order payment success for order ID: ${orderId} and paymentIntentId: ${paymentIntentId}`);
-
-  await RunQuery(`UPDATE payments SET status = ? WHERE paymentIntentId = ?`, ["succeeded", paymentIntentId]);
-  await RunQuery(`UPDATE orders SET status = ? WHERE id = ?`,["PREPARING", orderId]);
-  const order = await getOrderById(orderId);
-  if(!order){
-    log.warn(`[❌]Order with ID ${orderId} not found after payment success`);
-    return res.status(404).json({ message: "Order not found" });
-  }
-
-  // send order details to business room with ack to confirm receipt
-  const businessId = order?.businessId;
-  io.to(`business:${businessId}`)
-  .timeout(5000)
-  .emit("new_order", order, (err, responses) => {
-    log.debug(`sending checkout session to business room: ${businessId}`);
-
-    if (err) {
-    log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
-    }
-
-    const confirmed = responses?.some((res) => res?.success);
-
-    if (confirmed) {
-    log.info(`[socket ✅📦] Checkout session confirmed for business with uid: ${businessId}`);
-    } else {
-    log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
-    }
-  })
-
-  if(isSelfServicePayment){
-    log.debug(`[💳🛒] Processing self-service payment success for order ID: ${orderId}`);
-    io.to(`business:${businessId}`)
-    .timeout(5000)
-    .emit(`checkout_self_service_success_status_${orderId}`, order, (err, responses) => {
-      log.debug(`sending checkout session to business room: ${businessId}`);
-
-      if (err) {
-      log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
-      }
-
-      const confirmed = responses?.some((res) => res?.success);
-
-      if (confirmed) {
-      log.info(`[socket ✅📦] Checkout session confirmed for business with uid: ${businessId}`);
-      } else {
-      log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
-      }
-    });
-  }
-
-  log.info(`💾 Saved order and emitted to business room: ${businessId} successfully`);
-
-  return res.status(200).json({
-    success: true,
-    message: "Order payment processed and business notified successfully",
-    data: order,
-  });
-}
 
 
 async function HandleCheckOrderPickupTime(req, res) {
@@ -431,7 +360,6 @@ export {
   HandleGetOrderDetails, 
   HandleUpdateOrderStatus, 
   HandleGetTodayOrders, 
-  HandleOrderPaymentSuccess, 
   HandleGetOrdersHistory,
   HandleCheckOrderPickupTime 
 };
