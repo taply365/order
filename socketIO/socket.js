@@ -5,7 +5,7 @@ import { createClient } from "redis";
 import jwt from "jsonwebtoken";
 import log from "minhluanlu-color-log";
 import dotenv from "dotenv";
-import Subscriber from "../queue/sub/init.js";
+import Subscriber from "../queue/sub/subscriber.js";
 
 import { config, origins } from "../config.js";
 import { emitEvent } from "./events.js";
@@ -75,7 +75,7 @@ export default async function createSocketServer(app) {
   await pubClient.connect();
   await subClient.connect();
   await subscriber.connect();
-  await Subscriber(subscriber); // Start the Redis subscriber for app events
+  Subscriber(subscriber).catch((err) => log.err("Queue subscriber crashed:", err));
 
   io.adapter(createAdapter(pubClient, subClient));
 
