@@ -10,7 +10,9 @@ const handlePaymentSuccessEvent = async (data) => {
         return log.warn("[❌]Missing id or paymentIntentId in request parameters");
     }
 
-    io.to(`business:${businessId}`)
+    const room = `business:${businessId}`;
+
+    io.local.to(room)
     .timeout(5000)
     .emit("new_order", data, (err, responses) => {
         log.debug(`sending checkout session to business room: ${businessId}`);
