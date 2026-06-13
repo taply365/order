@@ -64,6 +64,7 @@ export default async function createSocketServer(app) {
       reconnectStrategy: redisReconnectStrategy,
     },
   });
+  pubClientInstance = pubClient;
 
   const subClient = pubClient.duplicate(); // Socket.IO only
   const subscriber = pubClient.duplicate(); // app subscribe only
