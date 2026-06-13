@@ -79,7 +79,6 @@ const handleSelfServicePaymentSuccessEvent = async (data) => {
     `[Socket 📤] Emitting self-service payment success status | orderId=${id} | businessId=${businessId}`
   );
 
-  const room = `business:${businessId}`;
   io.local.to(room)
     .timeout(5000)
     .emit(`checkout_self_service_success_status_${id}`, data, (err, responses) => {
