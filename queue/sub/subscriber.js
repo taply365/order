@@ -1,9 +1,6 @@
 // queue/sub.js
 import crypto from "crypto";
 import log from "minhluanlu-color-log";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 import {
   handlePaymentSuccessEvent,
@@ -11,12 +8,12 @@ import {
   handlePOSPaymentSuccessEvent,
 } from "../queueEvents/handlePaymentSuccessEvent.js";
 
-const QUEUE_STREAM_NAME = process.env.QUEUE_STREAM_NAME || "jobs";
-const QUEUE_GROUP_NAME = process.env.QUEUE_GROUP_NAME || "workers";
+const STREAM_NAME = "jobs";
+const GROUP_NAME = "workers";
 
 async function createGroup(redis) {
   try {
-    await redis.xGroupCreate(QUEUE_STREAM_NAME, QUEUE_GROUP_NAME, "$", {
+    await redis.xGroupCreate(STREAM_NAME, GROUP_NAME, "$", {
       MKSTREAM: true,
     });
   } catch (err) {
@@ -51,11 +48,11 @@ async function Subscriber(redis) {
   while (true) {
     try {
       const result = await redis.xReadGroup(
-        QUEUE_GROUP_NAME,
+        GROUP_NAME,
         consumerName,
         [
           {
-            key: QUEUE_STREAM_NAME,
+            key: STREAM_NAME,
             id: ">",
           },
         ],
@@ -77,14 +74,14 @@ async function Subscriber(redis) {
 
           if (!handler) {
             log.warn(`[Queue ⚠️] No handler for event: ${event}`);
-            await redis.xAck(QUEUE_STREAM_NAME, QUEUE_GROUP_NAME, messageId);
+            await redis.xAck(STREAM_NAME, GROUP_NAME, messageId);
             continue;
           }
 
           try {
             await handler(payload);
 
-            await redis.xAck(QUEUE_STREAM_NAME, QUEUE_GROUP_NAME, messageId);
+            await redis.xAck(STREAM_NAME, GROUP_NAME, messageId);
 
             log.info(`[Queue ✅] ACK ${event}: ${messageId}`);
           } catch (err) {
