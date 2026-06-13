@@ -1,15 +1,15 @@
-// queue/pub.js
 import { getPubClient } from "../../socketIO/socket.js";
 
-const STREAM_NAME = "jobs";
-
 const publish = async (event, data) => {
-  const redis = getPubClient();
+  const pubClient = getPubClient();
 
-  await redis.xAdd(STREAM_NAME, "*", {
+  if(!pubClient) {
+    throw new Error("Redis pubClient not initialized yet");
+  }
+  log.info(`[Queue publisher 🔗] Publishing event: ${event} with data:`, data);
+  await pubClient.publish(
     event,
-    payload: JSON.stringify(data),
-  });
+    JSON.stringify(data)
+  );
 };
-
 export default publish;

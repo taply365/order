@@ -76,7 +76,6 @@ export default async function createSocketServer(app) {
   await subClient.connect();
   await subscriber.connect();
   Subscriber(subscriber).catch((err) => log.err("Queue subscriber crashed:", err));
-
   io.adapter(createAdapter(pubClient, subClient));
 
   io.use((socket, next) => {
