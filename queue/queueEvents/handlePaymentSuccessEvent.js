@@ -39,10 +39,6 @@ const handleSelfServicePaymentSuccessEvent = async (data) => {
 
   const { id, businessId, paymentIntentId } = data;
 
-  log.info(
-    `[Queue Handler 🔗] Received self-service payment success event | orderId=${id} | businessId=${businessId} | paymentIntentId=${paymentIntentId}`
-  );
-
   if (!id || !paymentIntentId) {
     return log.warn(
       `[Queue Handler ⚠️] Missing required parameters | orderId=${id} | paymentIntentId=${paymentIntentId}`
@@ -54,7 +50,9 @@ const handleSelfServicePaymentSuccessEvent = async (data) => {
     `[Socket 📤] Emitting "new_order" event to business room | businessId=${businessId}`
   );
 
-  io.to(`business:${businessId}`)
+  const room = `business:${businessId}`;
+
+  io.local.to(room)
     .timeout(5000)
     .emit("new_order", data, (err, responses) => {
       if (err) {
@@ -81,7 +79,8 @@ const handleSelfServicePaymentSuccessEvent = async (data) => {
     `[Socket 📤] Emitting self-service payment success status | orderId=${id} | businessId=${businessId}`
   );
 
-  io.to(`business:${businessId}`)
+  const room = `business:${businessId}`;
+  io.local.to(room)
     .timeout(5000)
     .emit(`checkout_self_service_success_status_${id}`, data, (err, responses) => {
       if (err) {
@@ -119,7 +118,8 @@ const handlePOSPaymentSuccessEvent = async (data) => {
     }
 
     // Emit checkout session success status to business room with acknowledgment
-    io.to(`business:${businessId}`)
+    const room = `business:${businessId}`;
+    io.local.to(room)
     .timeout(5000)
     .emit(`checkout_session_success_status_${String(id)}`, { success: true }, (err, responses) => {
         log.debug(`sending checkout session to business room: ${businessId}`);
