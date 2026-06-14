@@ -30,6 +30,7 @@ const HandleGetNewOrders = async (req, res) => {
     let { receiverId, orders, orderPickupTime } = req.body;
     const  tokenData  = await getJwtTokenData(req);
     const orderType = req.query.type || "online";
+    const diningOption = req.query.diningOption || "takeaway";
 
     if (!tokenData) {
       console.log(tokenData.guestId)
@@ -124,8 +125,8 @@ const HandleGetNewOrders = async (req, res) => {
     }
     // Save order to database
     const [insertResult] = await connection.query(
-      "INSERT INTO orders (businessId, customerId, status, data, currency, totalPrice, pickupAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [businessId, customerId, orderStatus.PENDING, JSON.stringify(orders), businessCurrency, totalPrice, orderPickupTime]
+      "INSERT INTO orders (businessId, customerId, status, diningOption, data, currency, totalPrice, pickupAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [businessId, customerId, orderStatus.PENDING, diningOption, JSON.stringify(orders), businessCurrency, totalPrice, orderPickupTime]
     );
 
     if (!insertResult?.insertId) {
