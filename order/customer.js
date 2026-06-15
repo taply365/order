@@ -3,9 +3,15 @@ import { getIO } from "../socketIO/socket.js";
 import { pushNotification} from "../firebase/firebaseConfig.js";
 
 
-export async function sendOrderStatusToCustomer(customerId, orderId, status, image, icon) {
+
+export async function sendOrderStatusEvent(customerId, orderId, status, image, icon, businessId) {
     try{
         const io = getIO();
+        const payload = { 
+            orderId,
+            status,
+            id: orderId,
+         };
         io.to(`guest:${customerId}`)
         .timeout(5000)
         .emit(
@@ -26,6 +32,29 @@ export async function sendOrderStatusToCustomer(customerId, orderId, status, ima
             }
             }
         );
+
+        console.log(businessId);
+        io.to(`business:${businessId}`)
+        .timeout(5000)
+        .emit(
+            "order-status-update", { orderId, status },
+            (err, responses) => {
+            log.debug(`Sending order status update to business: ${businessId}`);
+
+            const confirmed = responses?.some((response) => response?.success);
+
+            if (confirmed) {
+                log.info(
+                `[socket ✅📦] Order status update for business with uid: ${businessId}`
+                );
+            } else {
+                log.warn(
+                `[socket ⚠️📤] No client order status update event for guest with uid: ${customerId}`
+                );
+            }
+            }
+        );
+
         // Also send a push notification
         try{
             log.debug(`📣 Emitted order status update to guest:${customerId} for order ${orderId} with status: ${status}`);

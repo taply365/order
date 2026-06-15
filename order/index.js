@@ -208,6 +208,7 @@ export async function getTodayOrdersForBusiness(businessId, status) {
             WHERE businessId = ?
             AND DATE(createdAt) = CURDATE()
             AND (status = ? OR status = ?)
+            OR (status = 'PAID' AND type = "offline")
             ORDER BY createdAt DESC
         `, [businessId, status, "READY"]);
         return results;

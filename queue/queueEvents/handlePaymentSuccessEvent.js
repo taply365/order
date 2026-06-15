@@ -4,10 +4,9 @@ import { getIO } from "../../socketIO/socket.js";
 const handlePaymentSuccessEvent = async (data) => {
     log.info("[Queue event handler 🔗] Handling payment success event with data");
     const io = getIO();
-
-    const { id, businessId, paymentIntentId } = data;
-    if (!id || !paymentIntentId) {
-        return log.warn("[❌]Missing id or paymentIntentId in request parameters");
+    const { id, businessId } = data;
+    if (!id || !businessId) {
+        return log.warn("[❌]Missing id or businessId in request parameters");
     }
 
     const room = `business:${businessId}`;
@@ -37,11 +36,11 @@ const handlePaymentSuccessEvent = async (data) => {
 const handleSelfServicePaymentSuccessEvent = async (data) => {
   const io = getIO();
 
-  const { id, businessId, paymentIntentId } = data;
+  const { id, businessId } = data;
 
-  if (!id || !paymentIntentId) {
+  if (!id || !businessId) {
     return log.warn(
-      `[Queue Handler ⚠️] Missing required parameters | orderId=${id} | paymentIntentId=${paymentIntentId}`
+      `[Queue Handler ⚠️] Missing required parameters | orderId=${id} | businessId=${businessId}`
     );
   }
 
@@ -102,7 +101,7 @@ const handleSelfServicePaymentSuccessEvent = async (data) => {
     });
 
   return log.info(
-    `[Queue Handler ✅] Finished processing self-service payment success event | orderId=${id} | businessId=${businessId} | paymentIntentId=${paymentIntentId}`
+    `[Queue Handler ✅] Finished processing self-service payment success event | orderId=${id} | businessId=${businessId}`
   );
 };
 
@@ -111,9 +110,9 @@ const handlePOSPaymentSuccessEvent = async (data) => {
     log.info("[Queue event handler 🔗] Handling payment success event with data");
     const io = getIO();
 
-    const { id, businessId, paymentIntentId } = data;
-    if (!id || !paymentIntentId) {
-        return log.warn("[❌]Missing id or paymentIntentId in request parameters");
+    const { id, businessId } = data;
+    if (!id || !businessId) {
+        return log.warn("[❌]Missing id or businessId in request parameters");
     }
 
     // Emit checkout session success status to business room with acknowledgment
@@ -136,11 +135,63 @@ const handlePOSPaymentSuccessEvent = async (data) => {
         }
     });
 
-    return log.info(`[Queue event handler 🔗] Finished handling payment success event for id: ${id}, paymentIntentId: ${paymentIntentId}`);
+    return log.info(`[Queue event handler 🔗] Finished handling payment success event for id: ${id}, businessId: ${businessId}`);
+}
+
+
+const handleTerminalPaymentSuccessEvent = async (data) => {
+    log.info("[Queue event handler 🔗] Handling new-pos-payment-success event with data");
+    const io = getIO();
+
+    const { id, businessId } = data;
+    if (!id || !businessId) {
+        return log.warn("[❌]Missing id or businessId in request parameters");
+    }
+
+    // Emit checkout session success status to business room with acknowledgment
+    const room = `business:${businessId}`;
+    io.local.to(room)
+    .timeout(5000)
+    .emit(`checkout_session_success_status_${String(id)}`, { success: true }, (err, responses) => {
+        log.debug(`sending checkout session to business room: ${businessId}`);
+
+        if (err) {
+        log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
+        }
+
+        const confirmed = responses?.some((res) => res?.success);
+
+        if (confirmed) {
+        log.info(`[socket ✅📦] Checkout session confirmed for business with uid: ${businessId}`);
+        } else {
+        log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
+        }
+    });
+
+    io.local.to(room)
+    .timeout(5000)
+    .emit("new_order", data, (err, responses) => {
+        log.debug(`sending checkout session to business room: ${businessId}`);
+
+        if (err) {
+        log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
+        }
+
+        const confirmed = responses?.some((res) => res?.success);
+
+        if (confirmed) {
+        log.info(`[socket ✅📦] Checkout session confirmed for business with uid: ${businessId}`);
+        } else {
+        log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
+        }
+    });
+
+    return log.info(`[Queue event handler 🔗] Finished handling payment success event for id: ${id}, businessId: ${businessId}`);
 }
 
 export {
     handlePaymentSuccessEvent, 
     handleSelfServicePaymentSuccessEvent,
-    handlePOSPaymentSuccessEvent
+    handlePOSPaymentSuccessEvent, 
+    handleTerminalPaymentSuccessEvent
 };

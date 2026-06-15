@@ -2,7 +2,8 @@ import log from "minhluanlu-color-log";
 import {
     handlePaymentSuccessEvent,
     handleSelfServicePaymentSuccessEvent,
-    handlePOSPaymentSuccessEvent
+    handlePOSPaymentSuccessEvent,
+    handleTerminalPaymentSuccessEvent
 } from "../queueEvents/handlePaymentSuccessEvent.js";
 
 
@@ -23,6 +24,11 @@ async function Subscriber(subscriber) {
     await subscriber.subscribe("new-pos-payment-success", (message) => {
         const data = JSON.parse(message);
         handlePOSPaymentSuccessEvent(data);
+    });
+
+    await subscriber.subscribe("new-terminal-payment-success", (message) => {
+        const data = JSON.parse(message);
+        handleTerminalPaymentSuccessEvent(data);
     });
 };
 

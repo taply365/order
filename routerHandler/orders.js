@@ -15,7 +15,7 @@ import {
   getTodayOrdersForBusiness,
   getOrdersHistory,
 } from "../order/index.js";
-import { sendOrderStatusToCustomer } from "../order/customer.js";
+import { sendOrderStatusEvent } from "../order/customer.js";
 import { getJwtTokenData } from "../auth/index.js";
 import { HandleCreatePayment, checkTooSmallAmount } from "../payment/index.js";
 import { pickupTimeCalculation, calculationPickupTimeForSelfServiceOrders } from "../order/calculation.js";
@@ -244,12 +244,12 @@ async function HandleUpdateOrderStatus(req, res) {
     const itemImage = data?.[0]?.images?.[0] || "";
     const icon = business?.logo || "";
 
-    const send = await sendOrderStatusToCustomer(customerId, id, status, itemImage, icon);
+    const send = await sendOrderStatusEvent(customerId, id, status, itemImage, icon, business?.id);
     if(!send){
       log.warn(`[❌]Failed to send order status update to customer for order ID: ${id}`);
     }
     log.debug(`[⏳📦]Order status updated and customer notified for order ID: ${id}`);
-
+    
     return res.status(200).json({
       success: true,
       message: "Order status updated successfully",
