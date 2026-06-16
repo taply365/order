@@ -139,59 +139,139 @@ const handlePOSPaymentSuccessEvent = async (data) => {
 }
 
 
-const handleTerminalPaymentSuccessEvent = async (data) => {
-    log.info("[Queue event handler 🔗] Handling new-pos-payment-success event with data");
+
+// for terminal event //
+const handleTerminalFullPaymentSuccessEvent = async (data) => {
+    log.info("------------------- 🔗 [Queue Handler] Processing full payment success event... -------------------");
+
     const io = getIO();
 
     const { id, businessId } = data;
+
     if (!id || !businessId) {
-        return log.warn("[❌]Missing id or businessId in request parameters");
+        return log.warn("❌ Missing required fields: id or businessId");
+    }
+
+    const room = `business:${businessId}`;
+
+    // Notify checkout session success
+    io.local
+        .to(room)
+        .timeout(5000)
+        .emit(
+            `checkout_session_success_status_${String(id)}`,
+            { success: true },
+            (err, responses) => {
+                log.debug(
+                    `📤 Sending checkout success notification to business room: ${businessId}`
+                );
+
+                if (err) {
+                    log.warn(
+                        `⚠️ Some clients in business room ${businessId} did not acknowledge the checkout notification`
+                    );
+                }
+
+                const confirmed = responses?.some((res) => res?.success);
+
+                if (confirmed) {
+                    log.info(
+                        `✅ Checkout success acknowledged by at least one client (Business ID: ${businessId})`
+                    );
+                } else {
+                    log.warn(
+                        `📭 No clients acknowledged the checkout success notification (Business ID: ${businessId})`
+                    );
+                }
+            }
+        );
+
+    // Notify new order
+    io.local
+        .to(room)
+        .timeout(5000)
+        .emit("new_order", data, (err, responses) => {
+            log.debug(
+                `📤 Sending new order notification to business room: ${businessId}`
+            );
+
+            if (err) {
+                log.warn(
+                    `⚠️ Some clients in business room ${businessId} did not acknowledge the new order notification`
+                );
+            }
+
+            const confirmed = responses?.some((res) => res?.success);
+
+            if (confirmed) {
+                log.info(
+                    `🛒 New order acknowledged by at least one client (Business ID: ${businessId})`
+                );
+            } else {
+                log.warn(
+                    `📭 No clients acknowledged the new order notification (Business ID: ${businessId})`
+                );
+            }
+        });
+
+    return log.info(
+        `------------------- 🎉 Full payment success event processed successfully (Session ID: ${id}, Business ID: ${businessId}) -------------------`
+    );
+};
+
+const handleTerminalSplitPaymentSuccessEvent = async (data) => {
+    log.info("------------------- 🔗 [Queue Handler] Processing split payment success event... -------------------");
+
+    const io = getIO();
+
+    const { id, businessId } = data;
+
+    if (!id || !businessId) {
+        return log.warn("❌ Missing required fields: id or businessId");
     }
 
     // Emit checkout session success status to business room with acknowledgment
     const room = `business:${businessId}`;
-    io.local.to(room)
-    .timeout(5000)
-    .emit(`checkout_session_success_status_${String(id)}`, { success: true }, (err, responses) => {
-        log.debug(`sending checkout session to business room: ${businessId}`);
 
-        if (err) {
-        log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
-        }
+    io.local
+        .to(room)
+        .timeout(5000)
+        .emit(
+            `checkout_session_success_status_${String(id)}`,
+            { success: true },
+            (err, responses) => {
+                log.debug(`📤 Sending checkout success notification to business room: ${businessId}`);
 
-        const confirmed = responses?.some((res) => res?.success);
+                if (err) {
+                    log.warn(
+                        `⚠️ Some clients in business room ${businessId} did not acknowledge the event`
+                    );
+                }
 
-        if (confirmed) {
-        log.info(`[socket ✅📦] Checkout session confirmed for business with uid: ${businessId}`);
-        } else {
-        log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
-        }
-    });
+                const confirmed = responses?.some((res) => res?.success);
 
-    io.local.to(room)
-    .timeout(5000)
-    .emit("new_order", data, (err, responses) => {
-        log.debug(`sending checkout session to business room: ${businessId}`);
+                if (confirmed) {
+                    log.info(
+                        `✅ Checkout session acknowledged by at least one client (Business ID: ${businessId})`
+                    );
+                } else {
+                    log.warn(
+                        `📭 No clients acknowledged the checkout session (Business ID: ${businessId})`
+                    );
+                }
+            }
+        );
 
-        if (err) {
-        log.warn(`[socket ⚠️📤] Failed to receive ack from one or more clients in business room: ${businessId}`);
-        }
+    return log.info(
+        `------------------- 🎉 Split payment success event processed successfully (Session ID: ${id}, Business ID: ${businessId}) -------------------`
+    );
+};
 
-        const confirmed = responses?.some((res) => res?.success);
-
-        if (confirmed) {
-        log.info(`[socket ✅📦] Checkout session confirmed for business with uid: ${businessId}`);
-        } else {
-        log.warn(`[socket ⚠️📤] No client confirmed checkout session for business with uid: ${businessId}`);
-        }
-    });
-
-    return log.info(`[Queue event handler 🔗] Finished handling payment success event for id: ${id}, businessId: ${businessId}`);
-}
 
 export {
     handlePaymentSuccessEvent, 
     handleSelfServicePaymentSuccessEvent,
     handlePOSPaymentSuccessEvent, 
-    handleTerminalPaymentSuccessEvent
+    handleTerminalFullPaymentSuccessEvent,
+    handleTerminalSplitPaymentSuccessEvent
 };
