@@ -17,7 +17,7 @@ jobs:
           username: ${{ secrets.SERVER_USER_INSTANCE_1 }}
           key: ${{ secrets.SERVER_SSH_KEY_INSTANCE_1 }}
           script: |
-            /root/deploy/order-deploy.ssh
+            /root/deploy/order-deploy-docker.ssh
 
       - name: Deploy to Instance-2
         uses: appleboy/ssh-action@v1.0.3
@@ -26,4 +26,4 @@ jobs:
           username: ${{ secrets.SERVER_USER_INSTANCE_2 }}
           key: ${{ secrets.SERVER_SSH_KEY_INSTANCE_2 }}
           script: |
-            /root/deploy/order-deploy.ssh
+            /root/deploy/order-deploy-docker.ssh

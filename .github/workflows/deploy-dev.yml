@@ -17,4 +17,4 @@ jobs:
           username: ${{ secrets.SERVER_USER_INSTANCE_DEVELOPMENT }}
           key: ${{ secrets.SERVER_SSH_KEY_INSTANCE_DEVELOPMENT }}
           script: |
-            /root/deploy/order-deploy.ssh
+            /root/deploy/order-deploy-docker.ssh
