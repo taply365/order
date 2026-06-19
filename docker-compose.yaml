@@ -1,5 +1,5 @@
 services:
-  node-app:
+  order-service:
     image: minhlu14206/order-service:latest
     restart: unless-stopped
     network_mode: host
