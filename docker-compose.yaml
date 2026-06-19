@@ -2,8 +2,6 @@ services:
   node-app:
     image: minhlu14206/order-service:latest
     restart: unless-stopped
-    ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
-      - "${SOCKET_PORT}:${SOCKET_PORT}"
+    network_mode: host
     env_file:
       - .env
