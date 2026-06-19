@@ -1,0 +1,20 @@
+name: Deploy order-service
+
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Instance-1
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST_INSTANCE_DEVELOPMENT }}
+          username: ${{ secrets.SERVER_USER_INSTANCE_DEVELOPMENT }}
+          key: ${{ secrets.SERVER_SSH_KEY_INSTANCE_DEVELOPMENT }}
+          script: |
+            /root/deploy/order-deploy.ssh
