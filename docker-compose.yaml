@@ -1,5 +1,6 @@
 services:
-  order-service:
+  order-app:
+    container_name: order-service
     image: minhlu14206/order-service:latest
     restart: unless-stopped
     network_mode: host
