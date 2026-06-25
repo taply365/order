@@ -1,5 +1,6 @@
 import log from "minhluanlu-color-log";
 import { getIO } from "../../socketIO/socket.js";
+import { PushOneNotification } from "../../expoNotification/pushNotification.js";
 
 const handlePaymentSuccessEvent = async (data) => {
     log.info("[Queue event handler 🔗] Handling payment success event with data");
@@ -29,7 +30,21 @@ const handlePaymentSuccessEvent = async (data) => {
         }
     });
 
-    return;
+    log.debug("SEND notification to business app");
+    const amount = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: data.currency,
+    }).format(data.totalPrice);
+
+    const payload = {
+        businessId: businessId,
+        title: "🎉 New Sale",
+        body: `New order received! Total: ${amount}`,
+        data: { id: id },
+    };
+
+    await PushOneNotification(payload);
+    return log.info(`[Queue event handler 🔗] Finished handling payment success event for id: ${id}, businessId: ${businessId}`);
 }
 
 
@@ -73,36 +88,50 @@ const handleSelfServicePaymentSuccessEvent = async (data) => {
       }
     });
 
-  // Notify payment success status
-  log.debug(
-    `[Socket 📤] Emitting self-service payment success status | orderId=${id} | businessId=${businessId}`
-  );
+    // Notify payment success status
+    log.debug(
+        `[Socket 📤] Emitting self-service payment success status | orderId=${id} | businessId=${businessId}`
+    );
 
-  io.local.to(room)
-    .timeout(5000)
-    .emit(`checkout_self_service_success_status_${id}`, data, (err, responses) => {
-      if (err) {
-        log.warn(
-          `[Socket ⚠️] Ack timeout for self-service payment success status event | orderId=${id} | businessId=${businessId}`
-        );
-      }
+    io.local.to(room)
+        .timeout(5000)
+        .emit(`checkout_self_service_success_status_${id}`, data, (err, responses) => {
+        if (err) {
+            log.warn(
+            `[Socket ⚠️] Ack timeout for self-service payment success status event | orderId=${id} | businessId=${businessId}`
+            );
+        }
 
-      const confirmed = responses?.some((res) => res?.success);
+        const confirmed = responses?.some((res) => res?.success);
 
-      if (confirmed) {
-        log.info(
-          `[Socket ✅] Self-service payment success acknowledged by at least one client | orderId=${id} | businessId=${businessId}`
-        );
-      } else {
-        log.warn(
-          `[Socket ⚠️] No client acknowledged self-service payment success event | orderId=${id} | businessId=${businessId}`
-        );
-      }
-    });
+        if (confirmed) {
+            log.info(
+            `[Socket ✅] Self-service payment success acknowledged by at least one client | orderId=${id} | businessId=${businessId}`
+            );
+        } else {
+            log.warn(
+            `[Socket ⚠️] No client acknowledged self-service payment success event | orderId=${id} | businessId=${businessId}`
+            );
+        }
+        });
 
-  return log.info(
-    `[Queue Handler ✅] Finished processing self-service payment success event | orderId=${id} | businessId=${businessId}`
-  );
+    log.debug("SEND notification to business app");
+    const amount = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: data.currency,
+    }).format(data.totalPrice);
+
+    const payload = {
+        businessId: businessId,
+        title: "🎉 New Sale",
+        body: `New order received! Total: ${amount}`,
+        data: { id: id },
+    };
+
+    await PushOneNotification(payload);
+    return log.info(
+        `[Queue Handler ✅] Finished processing self-service payment success event | orderId=${id} | businessId=${businessId}`
+    );
 };
 
 
@@ -214,6 +243,20 @@ const handleTerminalFullPaymentSuccessEvent = async (data) => {
             }
         });
 
+    log.debug("SEND notification to business app");
+    const amount = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: data.currency,
+    }).format(data.totalPrice);
+
+    const payload = {
+        businessId: businessId,
+        title: "🎉 New Sale",
+        body: `New order received! Total: ${amount}`,
+        data: { id: id },
+    };
+
+    await PushOneNotification(payload);
     return log.info(
         `------------------- 🎉 Full payment success event processed successfully (Session ID: ${id}, Business ID: ${businessId}) -------------------`
     );
